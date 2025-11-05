@@ -1,0 +1,671 @@
+import ProductImageUpload from "@/components/admin-view/image-upload";
+import AdminProductTile from "@/components/admin-view/product-tile";
+import CommonForm from "@/components/common/form";
+import { Button } from "@/components/ui/button";
+import { getAllBrands } from '@/store/admin/brands-slice'; // Adjust path based on your structure
+import { getAllCategories } from '@/store/admin/category-slice';
+import { debounce } from 'lodash'; 
+import { ChevronUp } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { useToast } from "@/components/ui/use-toast";
+import { addProductFormElements } from "@/config";
+import {
+  addNewProduct,
+  deleteProduct,
+  editProduct,
+  fetchAllProducts,
+} from "@/store/admin/products-slice";
+import { Fragment, useEffect, useState, useCallback, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import Loader from "@/components/Loader";
+const initialFormData = {
+  image: null,
+  title: "",
+  description: "",
+  category: "",
+  brand: "",
+  price: "",
+  salePrice: 0,
+  averageReview: 0,
+};
+
+function AdminProducts() {
+  const [openCreateProductsDialog, setOpenCreateProductsDialog] =
+    useState(false);
+  const [formData, setFormData] = useState(initialFormData);
+  const [imageFile, setImageFile] = useState(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
+  const [imageLoadingState, setImageLoadingState] = useState(false);
+  const [currentEditedId, setCurrentEditedId] = useState(null);
+  const [showArrow, setShowArrow] = useState(false); 
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(16); // Adjust based on your requirement
+  const [hasMore, setHasMore] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
+
+  const { productList } = useSelector((state) => state.adminProducts);
+  const { categoriesList } = useSelector((state) => state.category);
+  const { brandsList } = useSelector((state) => state.brands);
+  const [selectedBrand, setSelectedBrand] = useState("");
+  const dispatch = useDispatch();
+  const { toast } = useToast();
+  // Track which pages are already fetched to avoid duplicate fetches
+  const fetchedPages = useRef(new Set());
+
+
+  
+  const fetchProducts = useCallback(async () => {
+    if (isFetching || fetchedPages.current.has(currentPage) || !hasMore) return;
+
+    setIsFetching(true);
+    fetchedPages.current.add(currentPage); // Mark page as fetched to avoid duplicate calls
+
+    const response = await dispatch(fetchAllProducts({ page: currentPage, limit: 12 }));
+
+    if (response.payload?.success && response.payload.data.length < 12) {
+      setHasMore(false); // Stop fetching if fewer products are returned
+    }
+
+    setIsFetching(false);
+  }, [currentPage, dispatch, hasMore, isFetching]);
+
+  const handleScroll = useCallback(
+    debounce(() => {
+      const scrollPosition = window.innerHeight + document.documentElement.scrollTop;
+      const threshold = document.documentElement.scrollHeight - 100;
+
+
+    // Check if the user has scrolled down more than 50px (desktop) or 30px (mobile)
+    if (document.documentElement.scrollTop > (window.innerWidth < 768 ? 30 : 50)) {
+      setShowArrow(true); // Show the arrow button
+    } else {
+      setShowArrow(false); // Hide the arrow button
+    }
+
+      if (scrollPosition >= threshold && hasMore && !isFetching) {
+        setCurrentPage((prev) => prev + 1); // Increment page on scroll
+      }
+    }, 300),
+    [hasMore, isFetching]
+  );
+
+  useEffect(() => {
+    fetchProducts(); // Fetch products when page changes
+  }, [currentPage, fetchProducts]);
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
+
+   const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  function onSubmit(event) {
+    event.preventDefault();
+
+    const updatedProduct = {
+      ...formData,
+      image: uploadedImageUrl || formData.image, // Use uploaded image or existing image
+    };
+
+    currentEditedId !== null
+      ? dispatch(
+          editProduct({
+            id: currentEditedId,
+            formData: updatedProduct,
+          })
+        ).then((data) => {
+          if (data?.payload?.success) {
+            dispatch(fetchAllProducts());
+            setFormData(initialFormData);
+            setOpenCreateProductsDialog(false);
+            setCurrentEditedId(null);
+            window.location.reload();
+          }
+        })
+      : dispatch(
+          addNewProduct({
+            ...formData,
+            image: uploadedImageUrl,
+          })
+        ).then((data) => {
+          if (data?.payload?.success) {
+            dispatch(fetchAllProducts());
+            setOpenCreateProductsDialog(false);
+            setImageFile(null);
+            setFormData(initialFormData);
+            window.location.href="/admin/products"
+            toast({
+              title: "Product added successfully",
+            });
+          }
+        });
+  }
+
+  function handleDelete(getCurrentProductId) {
+    dispatch(deleteProduct(getCurrentProductId)).then((data) => {
+      if (data?.payload?.success) {
+        dispatch(fetchAllProducts());
+        window.location.reload()
+      }
+    });
+  }
+
+  function isFormValid() {
+    return Object.keys(formData)
+      .filter((currentKey) => currentKey !== "averageReview")
+      .map((key) => formData[key] !== "")
+      .every((item) => item);
+  }
+  
+  function markInStock(productId) {
+    dispatch(editProduct({ id: productId, formData: { salePrice: 0 } }))
+      .then((data) => {
+        if (data?.payload?.success) {
+          dispatch(fetchAllProducts());
+          window.location.reload();
+          toast({
+            title: "Product marked as in stock",
+          });
+        }
+      });
+  }
+  
+  const markOutOfStock = (productId) => {
+    dispatch(editProduct({ id: productId, formData: { salePrice: 10 } }))
+      .then((data) => {
+        if (data?.payload?.success) {
+          dispatch(fetchAllProducts()); // Fetch updated product list
+          window.location.reload();
+          toast({
+            title: "Product marked as out of stock",
+          });
+        } else {
+          toast({
+            title: "Failed to mark product as out of stock",
+            description: data?.payload?.message || "Something went wrong.",
+            variant: "destructive",
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error marking product as out of stock:", error);
+        toast({
+          title: "Error",
+          description: "Failed to mark product as out of stock.",
+          variant: "destructive",
+        });
+      });
+  };
+
+  useEffect(() => {
+    dispatch(getAllBrands());
+    dispatch(getAllCategories());
+  }, [dispatch]);
+
+  const handleBrandChange = (value) => {
+    setSelectedBrand(value);
+    setFormData((prevData) => ({ ...prevData, brand: value, subcategory: "" })); // Reset subcategory when brand changes
+  };
+
+  // Update the registerFormControls to include the beats
+  const UpdatedaddProductFormElements = addProductFormElements.map((control) => {
+    if (control.name === "brand") {
+      return {
+        ...control,
+        options: brandsList.map((brand) => ({
+          id: brand.brandName,
+          label: brand.brandName,
+        })),
+      };
+    }
+    else if (control.name === "subcategory") {
+      return {
+        ...control,
+        options: [
+          { id: "all", label: "All" }, // Adding the default "All" option
+          ...brandsList
+            .filter((brand) => brand.brandName === formData.brand) // Only show subcategories for the selected brand
+            .flatMap((brand) => brand.subcategories.map((sub) => ({
+              id: sub,
+              label: sub,
+            }))),
+        ],
+      };
+    } 
+    else if (control.name === "category") {
+      return {
+        ...control,
+        options: categoriesList.map((category) => ({
+          id: category.categoryName,
+          label: category.categoryName,
+        })),
+      };
+    }
+    return control;
+  });
+
+  return (
+    <Fragment>
+      <div className="mb-5 w-full flex justify-end">
+        <Button onClick={() => setOpenCreateProductsDialog(true)} size="sm">
+          Add New Product
+        </Button>
+      </div>
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+        {productList && productList.length > 0
+          ? productList.map((productItem) => (
+              <AdminProductTile
+                key={productItem._id}
+                setFormData={setFormData}
+                setOpenCreateProductsDialog={setOpenCreateProductsDialog}
+                setCurrentEditedId={setCurrentEditedId}
+                product={productItem}
+                handleDelete={handleDelete}
+                markInStock={markInStock} // Pass the function
+                markOutOfStock={markOutOfStock}
+              />
+            ))
+          : null}
+      </div>
+      {/* Scroll-to-Top Arrow Button */}
+      {showArrow && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-5 right-5 p-3 rounded-full bg-orange-600 text-white shadow-lg hover:bg-orange-700 transition duration-300"
+        >
+          <ChevronUp className="w-6 h-6" />
+        </button>
+      )}
+      {hasMore && <div className="text-center py-4"><Loader /></div>}
+      <Sheet
+        open={openCreateProductsDialog}
+        onOpenChange={() => {
+          setOpenCreateProductsDialog(false);
+          setCurrentEditedId(null);
+          setFormData(initialFormData);
+        }}
+      >
+        <SheetContent side="right" className="overflow-auto">
+          <SheetHeader>
+            <SheetTitle>
+              {currentEditedId !== null ? "Edit Product" : "Add New Product"}
+            </SheetTitle>
+          </SheetHeader>
+          <ProductImageUpload
+            imageFile={imageFile}
+            setImageFile={setImageFile}
+            uploadedImageUrl={uploadedImageUrl}
+            setUploadedImageUrl={setUploadedImageUrl}
+            setImageLoadingState={setImageLoadingState}
+            imageLoadingState={imageLoadingState}
+            isEditMode={currentEditedId !== null}
+          />
+          <div className="py-6">
+            <CommonForm
+              onSubmit={onSubmit}
+              formData={formData}
+              setFormData={setFormData}
+              buttonText={currentEditedId !== null ? "Edit" : "Add"}
+              formControls={UpdatedaddProductFormElements}
+              isBtnDisabled={!isFormValid()}
+              handleBrandChange={handleBrandChange}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
+    </Fragment>
+  );
+}
+
+export default AdminProducts;
+
+
+
+// products SLice 
+
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import axios from "axios";
+
+const initialState = {
+  isLoading: false,
+  productList: [],
+  outOfStockProducts: [],
+  currentPage: 1,  // To keep track of the current page
+};
+
+export const addNewProduct = createAsyncThunk(
+  "/products/addnewproduct",
+  async (formData) => {
+    const result = await axios.post(
+      "http://localhost:5000/api/admin/products/add",
+      formData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return result?.data;
+  }
+);
+
+export const fetchAllProducts = createAsyncThunk(
+  "/products/fetchAllProducts",
+  async ({ page = 1, limit = 10 }) => { // Accept page and limit as parameters
+    const result = await axios.get(
+      `http://localhost:5000/api/admin/products/get?page=${page}&limit=${limit}`
+    );
+
+    return result?.data;
+  }
+);
+
+export const fetchOutOfStockProducts = createAsyncThunk(
+  "/products/fetchOutOfStockProducts",  // New API for out-of-stock products
+  async () => {
+    const result = await axios.get(
+      "http://localhost:5000/api/admin/products/outOfStock"
+    );
+
+    return result?.data;
+  }
+);
+
+export const editProduct = createAsyncThunk(
+  "/products/editProduct",
+  async ({ id, formData }) => {
+    const result = await axios.put(
+      `http://localhost:5000/api/admin/products/edit/${id}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return result?.data;
+  }
+);
+
+export const deleteProduct = createAsyncThunk(
+  "/products/deleteProduct",
+  async (id) => {
+    const result = await axios.delete(
+      `http://localhost:5000/api/admin/products/delete/${id}`
+    );
+
+    return result?.data;
+  }
+);
+
+const AdminProductsSlice = createSlice({
+  name: "adminProducts",
+  initialState,
+  reducers: {
+    resetProducts: (state) => {
+      state.productList = [];  // Reset the product list
+      state.currentPage = 1;   // Reset the current page
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchAllProducts.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchAllProducts.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.productList = [...state.productList, ...action.payload.data]; // Append new products
+      })
+      .addCase(fetchAllProducts.rejected, (state, action) => {
+        state.isLoading = false;
+        state.productList = [];
+      })
+      .addCase(fetchOutOfStockProducts.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchOutOfStockProducts.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.outOfStockProducts = action.payload.data; // Store out-of-stock products
+      })
+      .addCase(fetchOutOfStockProducts.rejected, (state) => {
+        state.isLoading = false;
+        state.outOfStockProducts = []
+      })
+      .addCase(editProduct.fulfilled, (state, action) => {
+        const updatedProducts = state.productList.map(product =>
+          product._id === action.payload.data._id ? action.payload.data : product
+        );
+        state.productList = updatedProducts;
+      })
+      .addCase(editProduct.rejected, (state, action) => {
+        state.error = action.error.message;
+      });
+  },
+});
+
+export const { resetProducts } = AdminProductsSlice.actions;
+
+export default AdminProductsSlice.reducer;
+
+
+
+// product controller 
+
+
+const { imageUploadUtil } = require("../../helpers/cloudinary");
+const Product = require("../../models/Product");
+
+// Handle image upload
+const handleImageUpload = async (req, res) => {
+  try {
+    const b64 = Buffer.from(req.file.buffer).toString("base64");
+    const url = `data:${req.file.mimetype};base64,${b64}`;
+    const result = await imageUploadUtil(url);
+
+    res.json({
+      success: true,
+      result,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "An error occurred during image upload.",
+    });
+  }
+};
+
+// Add a new product
+const addProduct = async (req, res) => {
+  try {
+    const {
+      image,
+      title,
+      description,
+      category,
+      brand,
+      subcategory,
+      price,
+      salePrice,
+      averageReview,
+    } = req.body;
+
+    const newlyCreatedProduct = new Product({
+      image,
+      title,
+      description,
+      category,
+      brand,
+      subcategory,
+      price,
+      salePrice,
+      averageReview,
+    });
+
+    await newlyCreatedProduct.save();
+    res.status(201).json({
+      success: true,
+      data: newlyCreatedProduct,
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({
+      success: false,
+      message: "An error occurred while adding the product.",
+    });
+  }
+};
+
+// Fetch all products with pagination
+const fetchAllProducts = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query; // Default to page 1 and limit 10
+    const skip = (page - 1) * limit;
+
+    const listOfProducts = await Product.find({})
+      .sort({ createdAt: -1 }) // Sort by createdAt in descending order
+      .skip(skip)
+      .limit(Number(limit));
+
+    const totalProducts = await Product.countDocuments();
+
+    res.status(200).json({
+      success: true,
+      data: listOfProducts,
+      totalPages: Math.ceil(totalProducts / limit),
+      currentPage: Number(page),
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({
+      success: false,
+      message: "An error occurred while fetching products.",
+    });
+  }
+};
+
+const fetchAllOutOfStockProducts = async (req, res) => {
+  try {
+    const listOfProducts = await Product.aggregate([
+      {
+        $match: {
+          salePrice: { $gt: 1 }, // Match products with salePrice greater than 1
+          // You can also include more conditions if necessary (e.g., stock availability)
+        },
+      },
+      {
+        $sort: { createdAt: -1 }, // Sort by createdAt in descending order
+      },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: listOfProducts,
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({
+      success: false,
+      message: "An error occurred while fetching products.",
+    });
+  }
+};
+
+
+
+// Edit a product
+const editProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      image,
+      title,
+      description,
+      category,
+      brand,
+      subcategory,
+      price,
+      salePrice,
+      averageReview,
+    } = req.body;
+
+    let findProduct = await Product.findById(id);
+    if (!findProduct) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found.",
+      });
+    }
+
+    // Update fields only if they are provided in the request body
+    if (title !== undefined) findProduct.title = title;
+    if (description !== undefined) findProduct.description = description;
+    if (category !== undefined) findProduct.category = category;
+    if (brand !== undefined) findProduct.brand = brand;
+    if (category !== undefined) findProduct.subcategory = subcategory;
+    if (price !== undefined) findProduct.price = price === "" ? 0 : price;
+    if (salePrice !== undefined) findProduct.salePrice = salePrice === "" ? 0 : salePrice;
+    if (image !== undefined) findProduct.image = image;
+    if (averageReview !== undefined) findProduct.averageReview = averageReview;
+
+    await findProduct.save();
+    res.status(200).json({
+      success: true,
+      data: findProduct,
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({
+      success: false,
+      message: "An error occurred while editing the product.",
+    });
+  }
+};
+
+// Delete a product
+const deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findByIdAndDelete(id);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Product deleted successfully.",
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({
+      success: false,
+      message: "An error occurred while deleting the product.",
+    });
+  }
+};
+
+module.exports = {
+  handleImageUpload,
+  addProduct,
+  fetchAllProducts,
+  editProduct,
+  deleteProduct,
+  fetchAllOutOfStockProducts,
+};
+
