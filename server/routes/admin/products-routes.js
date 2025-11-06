@@ -1,4 +1,5 @@
 const express = require("express");
+const { verifyToken, authorizeRoles } = require("../../middleware/auth"); // Assuming auth middleware exists
 
 const {
   handleImageUpload,
@@ -7,7 +8,9 @@ const {
   fetchAllProducts,
   deleteProduct,
   fetchAllOutOfStockProducts,
-  searchProduct, // Import the searchProduct controller function
+  searchProduct,
+  fetchProductsForBulkEdit, // New controller function
+  bulkUpdateProducts, // New controller function
 } = require("../../controllers/admin/products-controller");
 
 const { upload } = require("../../helpers/cloudinary");
@@ -20,8 +23,10 @@ router.put("/edit/:id", editProduct);
 router.delete("/delete/:id", deleteProduct);
 router.get("/get", fetchAllProducts);
 router.get("/outOfStock", fetchAllOutOfStockProducts);
+router.get("/search/:searchQuery", searchProduct);
 
-// Add the searchProduct route
-router.get("/search/:searchQuery", searchProduct); // Search route to handle product search
+// New routes for bulk product editing
+router.get("/bulk-edit", verifyToken, authorizeRoles("admin"), fetchProductsForBulkEdit);
+router.put("/bulk-update", verifyToken, authorizeRoles("admin"), bulkUpdateProducts);
 
 module.exports = router;

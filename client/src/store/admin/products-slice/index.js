@@ -5,7 +5,7 @@ const initialState = {
   isLoading: false,
   productList: [],
   outOfStockProducts: [],
-  currentPage: 1,  // To keep track of the current page
+  currentPage: 1,
   searchQuery:'',
   filteredProducts :[],
 };
@@ -29,7 +29,7 @@ export const addNewProduct = createAsyncThunk(
 
 export const fetchAllProducts = createAsyncThunk(
   "/products/fetchAllProducts",
-  async ({ page = 1, limit = 12, searchQuery ='' }) => { // Accept page and limit as parameters
+  async ({ page = 1, limit = 12, searchQuery ='' }) => {
     const result = await axios.get(
       `http://localhost:5000/api/admin/products/get?page=${page}&limit=${limit}&searchQuery=${searchQuery}`
     );
@@ -39,7 +39,7 @@ export const fetchAllProducts = createAsyncThunk(
 );
 export const fetchAllProductSearch = createAsyncThunk(
   "/products/fetchAllProductSearch",
-  async ({ page = 1, limit = 12, searchQuery ='' }) => { // Accept page and limit as parameters
+  async ({ page = 1, limit = 12, searchQuery ='' }) => {
     const result = await axios.get(
       `http://localhost:5000/api/admin/products/get?page=${page}&limit=${limit}&searchQuery=${searchQuery}`
     );
@@ -49,7 +49,7 @@ export const fetchAllProductSearch = createAsyncThunk(
 );
 
 export const fetchOutOfStockProducts = createAsyncThunk(
-  "/products/fetchOutOfStockProducts",  // New API for out-of-stock products
+  "/products/fetchOutOfStockProducts",
   async () => {
     const result = await axios.get(
       "http://localhost:5000/api/admin/products/outOfStock"
@@ -87,20 +87,52 @@ export const deleteProduct = createAsyncThunk(
   }
 );
 
+// New async thunk for fetching products for bulk edit
+export const fetchProductsForBulkEdit = createAsyncThunk(
+  "/products/fetchProductsForBulkEdit",
+  async ({ page = 1, limit = 12, searchQuery = '' }) => {
+    const result = await axios.get(
+      `http://localhost:5000/api/admin/products/bulk-edit?page=${page}&limit=${limit}&searchQuery=${searchQuery}`,
+      {
+        withCredentials: true, // Ensure cookies are sent
+      }
+    );
+    return result?.data;
+  }
+);
+
+// New async thunk for bulk updating products
+export const bulkUpdateProducts = createAsyncThunk(
+  "/products/bulkUpdateProducts",
+  async ({ updates }) => {
+    const result = await axios.put(
+      "http://localhost:5000/api/admin/products/bulk-update",
+      { updates },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        withCredentials: true, // Ensure cookies are sent
+      }
+    );
+    return result?.data;
+  }
+);
+
 const AdminProductsSlice = createSlice({
   name: "adminProducts",
   initialState,
   reducers: {
     resetProducts: (state) => {
-      state.productList = [];  // Reset the product list
-      state.currentPage = 1;   // Reset the current page
+      state.productList = [];
+      state.currentPage = 1;
       state.filteredProducts = [];
     },
      setFilteredProducts: (state, action) => {
-      state.filteredProducts = action.payload;  // Update filtered products
+      state.filteredProducts = action.payload;
     },
     setSearchQuery: (state, action) => {
-      state.searchQuery = action.payload;  // Update search query
+      state.searchQuery = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -110,29 +142,29 @@ const AdminProductsSlice = createSlice({
       })
       .addCase(fetchAllProducts.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.productList = [...state.productList, ...action.payload.data]; // Append new products
+        state.productList = [...state.productList, ...action.payload.data];
       })
       .addCase(fetchAllProducts.rejected, (state, action) => {
         state.isLoading = false;
-        state.productList = []; 
+        state.productList = [];
       })
       .addCase(fetchAllProductSearch.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(fetchAllProductSearch.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.filteredProducts = [...state.productList, ...action.payload.data]; // Append new products
+        state.filteredProducts = [...state.productList, ...action.payload.data];
       })
       .addCase(fetchAllProductSearch.rejected, (state, action) => {
         state.isLoading = false;
-        state.productList = []; 
+        state.productList = [];
       })
       .addCase(fetchOutOfStockProducts.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(fetchOutOfStockProducts.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.outOfStockProducts = action.payload.data; // Store out-of-stock products
+        state.outOfStockProducts = action.payload.data;
       })
       .addCase(fetchOutOfStockProducts.rejected, (state) => {
         state.isLoading = false;
@@ -146,6 +178,30 @@ const AdminProductsSlice = createSlice({
       })
       .addCase(editProduct.rejected, (state, action) => {
         state.error = action.error.message;
+      })
+      // New cases for bulk edit products
+      .addCase(fetchProductsForBulkEdit.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchProductsForBulkEdit.fulfilled, (state, action) => {
+        state.isLoading = false;
+        // Assuming the bulk edit page manages its own product list, not appending to productList
+        // state.productList = action.payload.data; 
+      })
+      .addCase(fetchProductsForBulkEdit.rejected, (state, action) => {
+        state.isLoading = false;
+        // state.productList = [];
+      })
+      .addCase(bulkUpdateProducts.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(bulkUpdateProducts.fulfilled, (state, action) => {
+        state.isLoading = false;
+        // Handle successful bulk update, e.g., refresh product list or update individual items
+      })
+      .addCase(bulkUpdateProducts.rejected, (state, action) => {
+        state.isLoading = false;
+        // Handle error during bulk update
       });
   },
 });

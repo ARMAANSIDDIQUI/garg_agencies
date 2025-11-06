@@ -25,6 +25,12 @@ const adminSidebarMenuItems = [
     icon: <ShoppingBasket />,
   },
   {
+    id: "bulk-edit-products",
+    label: "Bulk Edit Products",
+    path: "/admin/bulk-edit-products",
+    icon: <ShoppingBasket />,
+  },
+  {
     id: "orders",
     label: "Orders",
     path: "/admin/orders",

@@ -251,6 +251,76 @@ const searchProduct = async (req, res) => {
   }
 };
 
+// New function to fetch products for bulk editing with pagination and search
+const fetchProductsForBulkEdit = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, searchQuery = '' } = req.query;
+    const skip = (page - 1) * limit;
+
+    const searchCriteria = searchQuery
+      ? {
+          $or: [
+            { title: { $regex: searchQuery, $options: 'i' } },
+            { subcategory: { $regex: searchQuery, $options: 'i' } },
+            { brand: { $regex: searchQuery, $options: 'i' } },
+          ],
+        }
+      : {};
+
+    const products = await Product.find(searchCriteria)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+
+    const totalProducts = await Product.countDocuments(searchCriteria);
+
+    res.status(200).json({
+      success: true,
+      data: products,
+      totalPages: Math.ceil(totalProducts / limit),
+      currentPage: Number(page),
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'An error occurred while fetching products for bulk edit.',
+    });
+  }
+};
+
+// New function to bulk update products
+const bulkUpdateProducts = async (req, res) => {
+  try {
+    const { updates } = req.body; // 'updates' is an array of { productId, updatedFields } objects
+    if (!Array.isArray(updates) || updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No updates provided.',
+      });
+    }
+
+    const updatePromises = updates.map(async (update) => {
+      const { productId, updatedFields } = update;
+      return Product.findByIdAndUpdate(productId, { $set: updatedFields }, { new: true });
+    });
+
+    const updatedProducts = await Promise.all(updatePromises);
+
+    res.status(200).json({
+      success: true,
+      message: `${updatedProducts.length} products updated successfully.`,
+      data: updatedProducts,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'An error occurred during bulk product update.',
+    });
+  }
+};
+
 module.exports = {
   handleImageUpload,
   addProduct,
@@ -258,6 +328,8 @@ module.exports = {
   fetchAllProducts,
   deleteProduct,
   fetchAllOutOfStockProducts,
-  searchProduct,  // Export the searchProduct function
+  searchProduct,
+  fetchProductsForBulkEdit, // Export the new function
+  bulkUpdateProducts, // Export the new function
 };
 
