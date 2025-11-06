@@ -15,9 +15,12 @@ import ShoppingListing from "./pages/shopping-view/listing";
 import ShoppingCheckout from "./pages/shopping-view/checkout";
 import ShoppingAccount from "./pages/shopping-view/account";
 import CheckAuth from "./components/common/check-auth";
-import UnauthPage from "./pages/unauth-page";
+import UnauthShoppingListing from "./pages/unauth-page/listing";
+import UnauthHome from "./pages/unauth-page/home";
+import UnauthHeader from "./components/shopping-view/UnauthHeader";
+import ScrollToTop from "./components/common/ScrollToTop";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { checkAuth } from "./store/auth-slice";
 import { Skeleton } from "@/components/ui/skeleton";
 // import PaypalReturnPage from "./pages/shopping-view/paypal-return";
@@ -34,30 +37,61 @@ import Beats from "./pages/admin-view/beats";
 import ForgotPassword from "./pages/auth/forget";
 import Shops from "./pages/admin-view/shops";
 import ChangePassword from "./pages/shopping-view/changePassword";
+import { ChevronUp } from "lucide-react";
 
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector(
     (state) => state.auth
   );
   const dispatch = useDispatch();
+  const [showScrollToTopButton, setShowScrollToTopButton] = useState(false);
 
   useEffect(() => {
     dispatch(checkAuth());
   }, [dispatch]);
+
+  const handleScroll = () => {
+    if (window.scrollY > 200) { // Show button after scrolling down 200px
+      setShowScrollToTopButton(true);
+    } else {
+      setShowScrollToTopButton(false);
+    }
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   if (isLoading) return <Skeleton className="w-[800] bg-black h-[600px]" />;
 
 
   return (
     <div className="flex flex-col overflow-hidden bg-white">
+      <ScrollToTop />
       <Routes>
         <Route
           path="/"
           element={
-            <CheckAuth
-              isAuthenticated={isAuthenticated}
-              user={user}
-            ></CheckAuth>
+            <>
+              <UnauthHeader />
+              <UnauthHome />
+            </>
+          }
+        />
+        <Route
+          path="/listing"
+          element={
+            <>
+              <UnauthHeader />
+              <UnauthShoppingListing />
+            </>
           }
         />
         <Route
@@ -124,9 +158,16 @@ function App() {
           <Route path="payment-success" element={<PaymentSuccessPage />} />
           <Route path="search" element={<SearchProducts />} />
         </Route>
-        <Route path="/unauth-page" element={<UnauthPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      {showScrollToTopButton && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-5 right-5 p-2 rounded-full bg-orange-600 text-white shadow-lg hover:bg-orange-700 transition duration-300"
+        >
+          <ChevronUp className="w-4 h-4" />
+        </button>
+      )}
     </div>
   );
 }

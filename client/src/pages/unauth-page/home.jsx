@@ -1,0 +1,259 @@
+import React, { memo } from 'react';
+import { Button } from "@/components/ui/button";
+import { GiChocolateBar } from "react-icons/gi";
+import { getAllBrands} from '@/store/admin/brands-slice';
+import { getAllCategories } from '@/store/admin/category-slice';
+import { Card, CardContent } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchBestProducts,
+  fetchProductDetails,
+} from "@/store/shop/products-slice";
+import ShoppingProductTile from "@/components/shopping-view/product-tile";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/components/ui/use-toast";
+import ProductDetailsDialog from "@/components/shopping-view/product-details";
+import { getFeatureImages } from "@/store/common-slice";
+import EnquiryDialog from "@/components/shopping-view/EnquiryDialog";
+
+function UnauthHome() {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const { bestProducts, productDetails } = useSelector(
+    (state) => state.shopProducts
+  );
+  const { featureImageList } = useSelector((state) => state.commonFeature);
+  const { categoriesList} = useSelector((state) => state.category);
+  const { brandsList }  = useSelector((state) => state.brands);
+
+  const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
+  const [openEnquiryDialog, setOpenEnquiryDialog] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState(null);
+  const [isEnquiryLoading, setIsEnquiryLoading] = useState(false);
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  function handleNavigateToListingPage(getCurrentItem, section) {
+    sessionStorage.removeItem("filters");
+    const currentFilter = {
+      [section]: [getCurrentItem],
+    };
+
+    sessionStorage.setItem("filters", JSON.stringify(currentFilter));
+    navigate('/listing');
+  }
+
+  function handleGetProductDetails(getCurrentProductId) {
+    dispatch(fetchProductDetails(getCurrentProductId));
+  }
+
+  function handleEnquire(productId) {
+    setSelectedProductId(productId);
+    setOpenEnquiryDialog(true);
+  }
+
+  async function handleSendEnquiry({ productId, email, message, phone }) {
+    setIsEnquiryLoading(true);
+    try {
+      const response = await fetch("http://localhost:5000/api/shop/enquire", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ productId, email, message, phone }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: "Enquiry sent successfully!",
+        });
+        setOpenEnquiryDialog(false);
+      } else {
+        toast({
+          title: "Failed to send enquiry.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "An error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsEnquiryLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (productDetails !== null) setOpenDetailsDialog(true);
+  }, [productDetails]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prevSlide) => (prevSlide + 1) % featureImageList.length);
+    }, 3000);
+
+    return () => clearInterval(timer);
+  }, [featureImageList]);
+
+  useEffect(() => {
+    dispatch(fetchBestProducts());
+    dispatch(getAllBrands());
+    dispatch(getAllCategories());
+    dispatch(getFeatureImages());
+  }, [dispatch]);
+  
+  useEffect(() => {
+    console.log("bestProducts:", bestProducts);
+    console.log("featureImageList:", featureImageList);
+    console.log("categoriesList:", categoriesList);
+    console.log("brandsList:", brandsList);
+  }, [bestProducts, featureImageList, categoriesList, brandsList]);
+
+  return (
+    <div className="flex flex-col min-h-screen p-3 mt-16">
+     <div className="relative w-full h-[190px] sm:h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden ">
+  {featureImageList && featureImageList.length > 0
+    ? featureImageList.map((slide, index) => (
+        <img
+          src={slide?.image}
+          key={index}
+          className={`${
+            index === currentSlide ? "opacity-100" : "opacity-0"
+          } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000 rounded-lg`}
+        />
+      ))
+    : null}
+
+  {/* Dots at the bottom */}
+  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+    {featureImageList.map((_, index) => (
+      <button
+        key={index}
+        onClick={() => setCurrentSlide(index)}
+        className={`w-2 h-   rounded-full ${
+          index === currentSlide ? "bg-blue-500" : "bg-gray-300"
+        }`}
+      />
+    ))}
+  </div>
+</div>
+
+{/* Add View All Products Button */}
+<div className="flex justify-center mt-8">
+  <button
+    onClick={() => navigate("/listing")}
+    className="px-4 py-2 bg-gradient-to-r from-orange-600 to-red-500 text-white font-semibold text-sm rounded-full shadow-lg 
+      hover:scale-105 transition-transform duration-300 ease-in-out 
+      focus:ring-4 focus:ring-purple-300 focus:outline-none"
+  >
+    View All Products
+  </button>
+</div>
+
+<section className="py-12 bg-gray-50">
+      <div className="container mx-auto px-4">
+        <h2 className="text-3xl font-bold text-center mb-8">Shop by Brand</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {brandsList?.length > 0 ? (
+            brandsList.map((brandItem) => (
+              <Card
+                key={brandItem.id}
+                onClick={() => handleNavigateToListingPage(brandItem.brandName, "brand")}
+                className="cursor-pointer hover:shadow-lg transition-shadow"
+              >
+                <CardContent className="flex flex-col items-center justify-center p-6">
+                  <img
+                    src={brandItem.imageUrl}
+                    alt={brandItem.brandName}
+                    className="w-18 h-16"
+                  />
+                  <span className="font-bold">{brandItem.brandName}</span>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <p className="text-center col-span-full">No brands available</p>
+          )}
+        </div>
+      </div>
+    </section>
+
+
+    <section className="py-12 bg-gray-50">
+      <div className="container mx-auto px-4">
+        <h2 className="text-3xl font-bold text-center mb-8">
+          Shop by Category
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {categoriesList?.length > 0 ? (
+            categoriesList.map((categoryItem) => (
+              <Card
+                key={categoryItem.id}
+                onClick={() => handleNavigateToListingPage(categoryItem.categoryName, "category")}
+                className="cursor-pointer hover:shadow-lg transition-shadow"
+              >
+                <CardContent className="flex flex-col items-center justify-center p-6">
+                  {categoryItem.imageUrl ? (
+                    <img
+                      src={categoryItem.imageUrl}
+                      alt={categoryItem.categoryName}
+                      className="w-12 h-12 mb-4"
+                    />
+                  ) : (
+                    <categoryItem.icon className="w-12 h-12 mb-4 text-primary" />
+                  )}
+                  <span className="font-bold">{categoryItem.categoryName}</span>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <p className="text-center col-span-full">No categories available</p>
+          )}
+        </div>
+      </div>
+    </section>
+
+      
+
+      <section className="py-12">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-8">
+            Feature Products
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+            {bestProducts && bestProducts.length > 0
+              ? bestProducts.map((productItem) => (
+                  <ShoppingProductTile
+                  product={productItem}
+                  handleGetProductDetails={handleGetProductDetails}
+                  handleEnquire={handleEnquire}
+                  isAuthPage={false}
+                  />
+                ))
+              : null}
+          </div>
+        </div>
+      </section>
+      <ProductDetailsDialog
+        open={openDetailsDialog}
+        setOpen={setOpenDetailsDialog}
+        productDetails={productDetails}
+      />
+
+      <EnquiryDialog
+        open={openEnquiryDialog}
+        setOpen={setOpenEnquiryDialog}
+        productId={selectedProductId}
+        handleSendEnquiry={handleSendEnquiry}
+        isLoading={isEnquiryLoading}
+      />
+    </div>
+  );
+}
+
+export default UnauthHome;

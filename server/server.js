@@ -2,6 +2,11 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const dotenv = require("dotenv"); // Added dotenv
+
+// Load environment variables
+dotenv.config();
+
 const authRouter = require("./routes/auth/auth-routes");
 const adminProductsRouter = require("./routes/admin/products-routes");
 const adminOrderRouter = require("./routes/admin/order-routes");
@@ -16,15 +21,14 @@ const adminCategoryRouter = require("./routes/admin/categories-route");
 const shopSearchRouter = require("./routes/shop/search-routes");
 const shopReviewRouter = require("./routes/shop/review-routes");
 const shopRouter = require("./routes/admin/shops-route");
+const enquiryRouter = require("./routes/shop/enquiry-routes");
 
 
 const commonFeatureRouter = require("./routes/common/feature-routes");
 
-//create a database connection -> u can also
-//create a separate file for this and then import/use that file here
-
+//create a database connection
 mongoose
-  .connect("ADD MongoDB URL")
+  .connect(process.env.MONGO_URI) // Using the environment variable
   .then(() => console.log("MongoDB connected"))
   .catch((error) => console.log(error));
 
@@ -67,6 +71,7 @@ app.use("/api/shop/address", shopAddressRouter);
 app.use("/api/shop/order", shopOrderRouter);
 app.use("/api/shop/search", shopSearchRouter);
 app.use("/api/shop/review", shopReviewRouter);
+app.use("/api/shop", enquiryRouter);
 
 app.use("/api/common/feature", commonFeatureRouter);
 

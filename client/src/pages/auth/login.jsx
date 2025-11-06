@@ -75,6 +75,11 @@ function AuthLogin() {
               Forgot Password?
             </Link>
           </p>
+          <p className="mt-2 text-center">
+            <Link className="font-medium text-blue-600 hover:underline" to="/">
+              Continue as Guest
+            </Link>
+          </p>
         </div>
         <CommonForm
           formControls={loginFormControls}

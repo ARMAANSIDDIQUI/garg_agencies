@@ -10,7 +10,9 @@ function ShoppingProductTile({
   handleGetProductDetails,
   handleAddtoCart,
   cartItems = { items: [] }, // Default cartItems to an empty object with items array to prevent errors
-  handleUpdateQuantity
+  handleUpdateQuantity,
+  isAuthPage = true, // Default to true for existing functionality
+  handleEnquire,
 }) {
 
   // Safely check cartItems and find if the product is already in the cart
@@ -97,37 +99,43 @@ function ShoppingProductTile({
         </CardContent>
       </div>
       <CardFooter>
-        { productQuantity > 0 ? (
-          <div className="flex items-center gap-2 mt-1">
-            <Button
-              variant="outline"
-              className="h-8 w-8 rounded-full"
-              size="icon"
-              onClick={handleDecrement}
-            >
-              <Minus className="w-4 h-4" />
+        {isAuthPage ? (
+          productQuantity > 0 ? (
+            <div className="flex items-center gap-2 mt-1">
+              <Button
+                variant="outline"
+                className="h-8 w-8 rounded-full"
+                size="icon"
+                onClick={handleDecrement}
+              >
+                <Minus className="w-4 h-4" />
+              </Button>
+              <input
+                type="text" // Use text type instead of number to avoid arrows
+                inputMode="numeric" // For numeric keyboard on mobile devices
+                value={inputValue}
+                onChange={handleInputChange} // Handle input change
+                onBlur={handleBlur} // Handle when input loses focus
+                className="w-1/3 text-center border "
+                onClick={handleClick}
+              />
+              <Button
+                variant="outline"
+                className="h-8 w-8 rounded-full"
+                size="icon"
+                onClick={handleIncrement}
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+          ) : (
+            <Button onClick={handleAddToCartClick} className="w-full">
+              Add to cart
             </Button>
-            <input
-              type="text" // Use text type instead of number to avoid arrows
-              inputMode="numeric" // For numeric keyboard on mobile devices
-              value={inputValue}
-              onChange={handleInputChange} // Handle input change
-              onBlur={handleBlur} // Handle when input loses focus
-              className="w-1/3 text-center border "
-              onClick={handleClick}
-            />
-            <Button
-              variant="outline"
-              className="h-8 w-8 rounded-full"
-              size="icon"
-              onClick={handleIncrement}
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
+          )
         ) : (
-          <Button onClick={handleAddToCartClick} className="w-full">
-            Add to cart
+          <Button onClick={() => handleEnquire(product._id)} className="w-full">
+            Enquire
           </Button>
         )}
       </CardFooter>

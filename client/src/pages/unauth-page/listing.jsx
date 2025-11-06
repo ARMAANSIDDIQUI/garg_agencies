@@ -1,12 +1,11 @@
+
 import ProductFilter from "@/components/shopping-view/filter";
 import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
-import { deleteCartItem, updateCartQuantity } from "@/store/shop/cart-slice";
 import { Label } from "../../components/ui/label";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Search } from 'lucide-react';
-// import { debounce } from 'lodash'; 
 import { ChevronUp } from "lucide-react";
 import {
   DropdownMenu,
@@ -17,7 +16,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/components/ui/use-toast";
 import { sortOptions } from "@/config";
-import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
 import {
   fetchAllFilteredProducts,
   fetchProductDetails,
@@ -27,6 +25,7 @@ import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams,  useNavigate } from "react-router-dom";
 import { resetProducts, setCurrentPage,resetPaginations } from "@/store/shop/products-slice";
+import EnquiryDialog from "@/components/shopping-view/EnquiryDialog";
 
 function createSearchParamsHelper(filterParams) {
   const queryParams = [];
@@ -44,7 +43,7 @@ function createSearchParamsHelper(filterParams) {
 }
 
 
-function ShoppingListing() {
+function UnauthShoppingListing() {
   const navigate = useNavigate();
   let lastFetchedPage = 0;
   const dispatch = useDispatch();
@@ -53,12 +52,13 @@ function ShoppingListing() {
   );
   const isInitialRender = useRef(true);
   
-  const { cartItems } = useSelector((state) => state.shopCart);
-  const { user } = useSelector((state) => state.auth);
   const [filters, setFilters] = useState({});
   const [sort, setSort] = useState("title-atoz");
   const [searchParams, setSearchParams] = useSearchParams();
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
+  const [openEnquiryDialog, setOpenEnquiryDialog] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState(null);
+  const [isEnquiryLoading, setIsEnquiryLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
    // State to manage selected brands and their subcategories
    const [selectedBrands, setSelectedBrands] = useState([]);
@@ -88,11 +88,6 @@ function ShoppingListing() {
 };
   
 
-  // function handleSort(value) {
-  //   setSort(value);
-  // }
-;
-
   function handleFilter(getSectionId, getCurrentOption) {
     const updatedFilters = { ...filters };
     if (!updatedFilters[getSectionId]) {
@@ -110,118 +105,48 @@ function ShoppingListing() {
     dispatch(setCurrentPage(1)); // Reset current page when filters change
   }
 
-// useEffect(() => {
-//     // Reset products when the filters or sorting change
-//     dispatch(resetProducts());
-//     dispatch(resetPaginations());
-//     fetchProducts(); // Call to fetch products with updated filters and reset page
-// }, [filters, sort]);
-
 
   function handleGetProductDetails(getCurrentProductId) {
     dispatch(fetchProductDetails(getCurrentProductId));
   }
 
-  function handleAddtoCart(getCurrentProductId) {
-   
-    let getCartItems = cartItems.items || [];
-
-    if (getCartItems.length) {
-      const indexOfCurrentItem = getCartItems.findIndex(
-        (item) => item.productId === getCurrentProductId
-      );
-      // if (indexOfCurrentItem > -1) {
-      //   const getQuantity = getCartItems[indexOfCurrentItem].quantity;
-      //   if (getQuantity + 1 > getTotalStock) {
-      //     toast({
-      //       title: `Only ${getQuantity} quantity can be added for this item`,
-      //       variant: "destructive",
-      //     });
-
-      //     return;
-      //   }
-      // }
-    }
-
-    dispatch(
-      addToCart({
-        userId: user?.id,
-        productId: getCurrentProductId,
-        quantity: 1,
-      })
-    ).then((data) => {
-      if (data?.payload?.success) {
-        dispatch(fetchCartItems(user?.id));
-        
-      }
-    });
+  function handleEnquire(productId) {
+    setSelectedProductId(productId);
+    setOpenEnquiryDialog(true);
   }
 
-
-  function handleUpdateQuantity(productId, value) {
-    let getCartItems = cartItems.items || [];
-    const cartItem = getCartItems.find((item) => item.productId === productId);
-
-    if (!cartItem) {
-      toast({
-        title: "Product not found in the cart",
-        variant: "destructive",
+  async function handleSendEnquiry({ productId, email, message, phone }) {
+    setIsEnquiryLoading(true);
+    try {
+      const response = await fetch("http://localhost:5000/api/shop/enquire", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ productId, email, message, phone }),
       });
-      return;
-    }
 
-    const product = productList.find((item) => item._id === productId);
-    if (!product) {
-      toast({
-        title: "Product details not found",
-        variant: "destructive",
-      });
-      return;
-    }
+      const data = await response.json();
 
-    // const getTotalStock = product.totalStock;
-    let newQuantity = value;
-
-    // if (newQuantity > getTotalStock) {
-    //   toast({
-    //     title: `Only ${getTotalStock} items are available in stock`,
-    //     variant: "destructive",
-    //   });
-    //   return;
-    // }
-
-    if (newQuantity < 1) {
-      dispatch(deleteCartItem({ userId: user?.id, productId })).then((data) => {
-        if (data?.payload?.success) {
-          
-          dispatch(fetchCartItems(user?.id));
-        } else {
-          toast({
-            title: "Failed to delete cart item",
-            variant: "destructive",
-          });
-        }
-      });
-      return;
-    }
-
-    dispatch(
-      updateCartQuantity({
-        userId: user?.id,
-        productId,
-        quantity: newQuantity,
-      })
-    ).then((data) => {
-      if (data?.payload?.success) {
-        
-        dispatch(fetchCartItems(user?.id));
+      if (data.success) {
+        toast({
+          title: "Enquiry sent successfully!",
+        });
+        setOpenEnquiryDialog(false);
       } else {
         toast({
-          title: "Failed to update cart item",
+          title: "Failed to send enquiry.",
           variant: "destructive",
         });
       }
-    });
+    } catch (error) {
+      toast({
+        title: "An error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsEnquiryLoading(false);
+    }
   }
 
    // Function to fetch products, only if not loading and has more products
@@ -251,17 +176,12 @@ function ShoppingListing() {
     dispatch(setCurrentPage(1));
     setFilters(JSON.parse(sessionStorage.getItem("filters")) || {});
   }, [categorySearchParam]);
+
   useEffect(() => {
     // setSort("price-lowtohigh");
     dispatch(setCurrentPage(1));
     setFilters(JSON.parse(sessionStorage.getItem("filters")) || {});
   }, [brandSearchParam]);
-  // Fetch products when filters or sorting changes
-
-
-  
-
- 
 
   // Handle sort change
   const handleSort = (newSort) => {
@@ -277,6 +197,7 @@ function ShoppingListing() {
     const savedFilters = JSON.parse(sessionStorage.getItem("filters"));
     if (savedFilters) setFilters(savedFilters);
   }, []);
+
   useEffect(() => {
     if (isInitialRender.current) {
       // Skip the initial render
@@ -286,12 +207,6 @@ function ShoppingListing() {
     
     fetchProducts(); // Fetch products only when currentPage, filters, or sort changes
   }, [currentPage, filters, sort]);
-  // useEffect(() => {
-  //   dispatch(resetProducts());
-  //   dispatch(resetPaginations());
-  //   dispatch(setCurrentPage(1));
-  //   fetchProducts(); // Fetch products when current page, filters, or sort changes
-  // }, []);
 
     useEffect(() => {
 
@@ -303,29 +218,7 @@ function ShoppingListing() {
 
     }
   }, [filters]);
-
-  // useEffect(() => {
-  //   // Check if query params have brand or category
-  //   const brand = searchParams.get("brand");
-  //   const category = searchParams.get("category");
   
-  //   if (brand || category) {
-  //     // Set filters based on query params
-  //     const updatedFilters = { ...filters };
-  //     if (brand) {
-  //       updatedFilters.brand = [brand]; // Assuming 'brand' is an array of brands
-  //     }
-  //     if (category) {
-  //       updatedFilters.category = [category]; // Assuming 'category' is an array of categories
-  //     }
-  
-  //     setFilters(updatedFilters);
-  //     dispatch(setCurrentPage(1)); // Reset current page to 1 if brand or category is present
-  //   }
-  // }, [searchParams, dispatch]);
-  
-  
-
   const handleScroll = ()=>{
      // Check if the user has scrolled down more than 50px (desktop) or 30px (mobile)
      if (document.documentElement.scrollTop > (window.innerWidth < 768 ? 2 : 50)) {
@@ -341,12 +234,10 @@ function ShoppingListing() {
       !isLoading
     ) {
       
-      // setIsLoading(true); // Set loading state
       dispatch(setCurrentPage(currentPage + 1)); // Load more products
     }
-  }; // Adjust debounce delay as needed
+  };
 
-  // Attach scroll event listener for infinite scroll
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll); // Clean up on component unmount
@@ -355,8 +246,6 @@ function ShoppingListing() {
   useEffect(() => {
     if (productDetails !== null) setOpenDetailsDialog(true);
   }, [productDetails]);
-
-  
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 p-4 md:p-6 mt-16">
@@ -417,9 +306,8 @@ function ShoppingListing() {
                 key={productItem._id}
                 product={productItem}
                 handleGetProductDetails={handleGetProductDetails}
-                handleAddtoCart={handleAddtoCart}
-                cartItems={cartItems}
-                handleUpdateQuantity={handleUpdateQuantity}
+                handleEnquire={handleEnquire}
+                isAuthPage={false}
               />
             ))
           ) : (
@@ -443,9 +331,15 @@ function ShoppingListing() {
         productDetails={productDetails}
       />
 
-      
+      <EnquiryDialog
+        open={openEnquiryDialog}
+        setOpen={setOpenEnquiryDialog}
+        productId={selectedProductId}
+        handleSendEnquiry={handleSendEnquiry}
+        isLoading={isEnquiryLoading}
+      />
     </div>
   );
 }
 
-export default ShoppingListing;  
+export default UnauthShoppingListing;

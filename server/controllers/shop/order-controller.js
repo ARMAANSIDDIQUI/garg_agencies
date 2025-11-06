@@ -112,7 +112,8 @@ const createOrder = async (req, res) => {
     // Prepare the email content
     const mailOptions = {
       from: "gozoomtechnologies@gmail.com",
-      to: "shashwatmbd@gmail.com",
+      // to: "shashwatmbd@gmail.com",
+      to: "gargagenciesmbd@gmail.com", //changed the receiver mail.
       subject: `New Order Received - Shop Name: ${addressInfo.shopName}`,
       html: `
         <h1>New Order Details</h1>
