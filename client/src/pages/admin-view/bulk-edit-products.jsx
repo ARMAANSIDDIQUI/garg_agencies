@@ -55,7 +55,7 @@ function BulkEditProducts() {
       setHasMore(false);
     }
     setIsFetching(false);
-  }, [dispatch, searchQuery, isFetching, hasMore, toast]);
+  }, [dispatch, searchQuery]);
 
   useEffect(() => {
     dispatch(resetProducts()); // Clear previous products on mount
@@ -73,30 +73,17 @@ function BulkEditProducts() {
     };
 
     fetchAllProductsForFilters();
-  }, [searchQuery, dispatch]);
-
-  useEffect(() => {
-    dispatch(resetProducts()); // Clear previous products on mount
-    setEditableProducts([]);
-    setProductsToUpdate({});
-    setHasMore(true);
-    fetchedPages.current.clear();
-    fetchProducts(1);
-
-    const fetchAllProductsForFilters = async () => {
-      const response = await dispatch(fetchProductsForBulkEdit({ limit: 10000, searchQuery }));
-      if (response.payload?.success) {
-        setAllProductsForFilters(response.payload.data);
-      }
-    };
-
-    fetchAllProductsForFilters();
-  }, [searchQuery, dispatch]);
+  }, [searchQuery, dispatch, fetchProducts]);
 
 
 
   const handleProductChange = (productId, field, value) => {
     setEditableProducts((prev) =>
+      prev.map((product) =>
+        product._id === productId ? { ...product, [field]: value } : product
+      )
+    );
+    setFilteredProducts((prev) =>
       prev.map((product) =>
         product._id === productId ? { ...product, [field]: value } : product
       )

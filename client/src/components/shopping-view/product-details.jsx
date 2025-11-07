@@ -1,8 +1,9 @@
 import { StarIcon } from "lucide-react";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Button } from "../ui/button";
-import { Dialog, DialogContent } from "../ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Separator } from "../ui/separator";
+import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
@@ -55,8 +56,10 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
           />
         </div>
         <div className="">
+          <DialogHeader>
+            <DialogTitle className="text-2xl sm:text-3xl font-extrabold">{productDetails?.title}</DialogTitle>
+          </DialogHeader>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold">{productDetails?.title}</h1>
             <p className="text-muted-foreground text-lg sm:text-2xl mb-5 mt-2">
               {productDetails?.description}
             </p>
