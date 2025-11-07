@@ -3,6 +3,7 @@ import { Label } from "../ui/label";
 import { Checkbox } from "../ui/checkbox";
 import { Separator } from "../ui/separator";
 import { ChevronRight } from "lucide-react";
+import { Button } from "../ui/button";
 
 function BulkProductFilters({ products = [], onFiltered }) {
   const [filters, setFilters] = useState({
@@ -149,10 +150,22 @@ function BulkProductFilters({ products = [], onFiltered }) {
     }));
   };
 
+  const handleClearFilters = () => {
+    setFilters({
+      brand: [],
+      category: [],
+      subcategory: [],
+    });
+    setSubcategories([]);
+  };
+
   return (
     <div className="bg-background rounded-lg shadow-sm">
-      <div className="p-4 border-b">
+      <div className="p-4 border-b flex items-center justify-between">
         <h2 className="text-lg font-extrabold">Filters</h2>
+        <Button variant="outline" onClick={handleClearFilters}>
+          Clear Filters
+        </Button>
       </div>
 
       <div className="p-4 space-y-4">
