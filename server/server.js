@@ -2,9 +2,9 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-const dotenv = require("dotenv"); // Added dotenv
+const dotenv = require("dotenv");
+const path = require("path");
 
-// Load environment variables
 dotenv.config();
 
 const authRouter = require("./routes/auth/auth-routes");
@@ -22,48 +22,35 @@ const shopSearchRouter = require("./routes/shop/search-routes");
 const shopReviewRouter = require("./routes/shop/review-routes");
 const shopRouter = require("./routes/admin/shops-route");
 const enquiryRouter = require("./routes/shop/enquiry-routes");
-
-
 const commonFeatureRouter = require("./routes/common/feature-routes");
 
-//create a database connection
 mongoose
-  .connect(process.env.MONGO_URI) // Using the environment variable
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
-  .catch((error) => console.log(error));
+  .catch((error) => console.error("MongoDB connection error:", error));
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
+app.use(express.json());
+app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST", "DELETE", "PUT"],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "Cache-Control",
-      "Expires",
-      "Pragma",
-    ],
+    origin: "http://localhost:5173", // frontend during development
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
 
-app.get("/",(req,res) => {
-  res.send("Backend is live")
-})
-
-app.use(cookieParser());
-app.use(express.json());
 app.use("/api/auth", authRouter);
 app.use("/api/admin/products", adminProductsRouter);
 app.use("/api/admin/orders", adminOrderRouter);
 app.use("/api/admin/beats", adminBeatRouter);
 app.use("/api/admin/brand", adminBrandRouter);
 app.use("/api/admin/category", adminCategoryRouter);
-app.use("/api/admin/users", shopRouter); 
-app.use("/api/salesman", salesmanRouter); // Use salesman routes
+app.use("/api/admin/users", shopRouter);
+app.use("/api/salesman", salesmanRouter);
 
 app.use("/api/shop/products", shopProductsRouter);
 app.use("/api/shop/cart", shopCartRouter);
@@ -75,4 +62,16 @@ app.use("/api/shop", enquiryRouter);
 
 app.use("/api/common/feature", commonFeatureRouter);
 
-app.listen(PORT, () => console.log(`Server is now running on port ${PORT}`));
+const frontendPath = path.join(__dirname, "dist");
+
+app.use(express.static(frontendPath));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
+});
+
+app.get("/", (req, res) => {
+  res.send("Backend is live");
+});
+
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

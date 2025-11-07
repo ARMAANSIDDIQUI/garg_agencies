@@ -48,7 +48,7 @@ function MenuItems({ closeSheet }) {
       ? setSearchParams(
           new URLSearchParams(`?category=${getCurrentMenuItem.id}`)
         )
-       : window.location.href = getCurrentMenuItem.path;
+       : navigate(getCurrentMenuItem.path);
 
     // Close the sheet when an item is clicked
     if (closeSheet) {
