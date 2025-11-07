@@ -157,7 +157,7 @@ const createOrder = async (req, res) => {
     // Send to main admin
     await transporter.sendMail({
       from: "gozoomtechnologies@gmail.com",
-      to: "gargagenciesmbd@gmail.com", // main admin
+      to: "shashwatmbd@gmail.com", // main admin
       subject: `New Order Received - Shop Name: ${addressInfo.shopName}`,
       html: emailHTML,
     });
