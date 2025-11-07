@@ -27,6 +27,14 @@ export const registerFormControls = [
     pattern:"[0-9]{10}"
   },
   {
+    name: "email",
+    label: "Email",
+    placeholder: "Enter your Email",
+    componentType: "input",
+    type: "email",
+    note: "Email will be used for sharing order details when it’s placed."
+  },
+  {
     name: "beatName",
     label: "Area",
     placeholder: "Select a Beat",
@@ -192,6 +200,13 @@ export const addressFormControls = [
     type: "text",
     pattern:"[0-9]{10}",
     placeholder: "Enter 10-Digit Phone Number",
+  },
+  {
+    label: "Email",
+    name: "email",
+    componentType: "input",
+    type: "email",
+    placeholder: "Enter your Email (Optional)",
   },
   
 ];

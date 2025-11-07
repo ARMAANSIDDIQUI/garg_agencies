@@ -15,6 +15,7 @@ import { useToast } from "../ui/use-toast";
 const initialAddressFormData = {
   address: "",
   phone: "",
+  email: "",
 };
 
 function Address({ setCurrentSelectedAddress, selectedId }) {
@@ -103,6 +104,7 @@ function Address({ setCurrentSelectedAddress, selectedId }) {
       ...formData,
       address: getCurrentAddress?.address || "",
       phone: getCurrentAddress?.phone || null,
+      email: getCurrentAddress?.email || "",
     });
   }
   
@@ -115,13 +117,13 @@ function Address({ setCurrentSelectedAddress, selectedId }) {
           return value !== ""; // Ensure the string is not empty
         } else if (typeof value === "number") {
           return !isNaN(value); // Ensure the number is valid
-        } 
+        } else if (key === "email") {
+          return value === "" || /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(value);
+        }
         return false; // Invalid if not string or number
       })
       .every((item) => item); // All fields must be valid
   }
-  
-
   useEffect(() => {
     dispatch(fetchAllAddresses(user?.id));
   }, [dispatch]);

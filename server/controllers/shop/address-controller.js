@@ -2,7 +2,7 @@ const Address = require("../../models/Address");
 
 const addAddress = async (req, res) => {
   try {
-    const { userId, address, phone } = req.body;
+    const { userId, address, phone, email } = req.body;
 
     if (!userId || !address || !phone) {
       return res.status(400).json({
@@ -15,6 +15,7 @@ const addAddress = async (req, res) => {
       userId,
       address,
       phone,
+      email,
     });
 
     await newlyCreatedAddress.save();
@@ -45,7 +46,7 @@ const fetchAllAddress = async (req, res) => {
     const addressList = await Address.aggregate([
       { $match: { userId } }, // Filter addresses by userId
       { $sort: { createdAt: -1 } }, // Sort by newest first (if `createdAt` field exists)
-      { $project: { _id: 1, address: 1, phone: 1, userId: 1 } }, // Select only needed fields
+      { $project: { _id: 1, address: 1, phone: 1, email: 1, userId: 1 } }, // Select only needed fields
     ]);
 
     res.status(200).json({

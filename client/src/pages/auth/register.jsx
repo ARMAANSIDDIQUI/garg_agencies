@@ -11,6 +11,7 @@ const initialState = {
   userName: "",
   userAddress: "",
   phoneNo: "",
+  email: "",
   beatName: "",
   password: "",
 };

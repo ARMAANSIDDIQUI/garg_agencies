@@ -11,7 +11,7 @@ const fast2smsApiKey = "nKnWsfTWXZcASRNn4YZgDoEOw1MDMeFbXc6lOqEoSBYMFk2ejuozZOac
 
 //register
 const registerUser = async (req, res) => {
-  const { userName, userAddress, phoneNo, beatName, password } = req.body;
+  const { userName, userAddress, phoneNo, beatName, password, email } = req.body;
 
   try {
     const checkUser = await User.findOne({ phoneNo });
@@ -28,6 +28,7 @@ const registerUser = async (req, res) => {
       phoneNo,
       beatName,
       password: password,
+      email,
     });
    
 
@@ -44,6 +45,7 @@ const registerUser = async (req, res) => {
       userId : newUser._id ,
       address : userAddress,
       phone : phoneNo,
+      email : email,
 
     })
     await newAddress.save();
