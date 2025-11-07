@@ -8,6 +8,7 @@ import { ChevronUp } from "lucide-react";
 import BulkEditProductTile from "@/components/admin-view/bulk-edit-product-tile";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { fetchProductsForBulkEdit, bulkUpdateProducts, setSearchQuery, resetProducts } from "@/store/admin/products-slice";
+import BulkProductFilters from "@/components/admin-view/BulkProductFilters";
 
 function BulkEditProducts() {
   const dispatch = useDispatch();
@@ -15,6 +16,7 @@ function BulkEditProducts() {
   const { searchQuery } = useSelector((state) => state.adminProducts);
 
   const [editableProducts, setEditableProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [productsToUpdate, setProductsToUpdate] = useState({});
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -186,18 +188,25 @@ function BulkEditProducts() {
         </Button>
       </div>
 
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {editableProducts && editableProducts.length > 0 ? (
-          editableProducts.map((productItem) => (
-            <BulkEditProductTile
-              key={productItem._id}
-              product={productItem}
-              onProductChange={handleProductChange}
-            />
-          ))
-        ) : (
-          <p>No products found</p>
-        )}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="md:col-span-1">
+          <BulkProductFilters products={editableProducts} onFiltered={setFilteredProducts} />
+        </div>
+        <div className="md:col-span-3">
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((productItem) => (
+                <BulkEditProductTile
+                  key={productItem._id}
+                  product={productItem}
+                  onProductChange={handleProductChange}
+                />
+              ))
+            ) : (
+              <p>No products found</p>
+            )}
+          </div>
+        </div>
       </div>
 
       {showArrow && (
