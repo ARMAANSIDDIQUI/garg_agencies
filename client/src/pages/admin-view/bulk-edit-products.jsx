@@ -4,7 +4,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { Fragment, useEffect, useState, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { debounce } from 'lodash';
-import { ChevronUp } from "lucide-react";
 import BulkEditProductTile from "@/components/admin-view/bulk-edit-product-tile";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { fetchProductsForBulkEdit, bulkUpdateProducts, setSearchQuery, resetProducts } from "@/store/admin/products-slice";
@@ -17,28 +16,16 @@ function BulkEditProducts() {
 
   const [editableProducts, setEditableProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [allProductsForFilters, setAllProductsForFilters] = useState([]);
   const [productsToUpdate, setProductsToUpdate] = useState({});
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
-  const [showArrow, setShowArrow] = useState(false);
   const fetchedPages = useRef(new Set());
-  const [localCurrentPage, setLocalCurrentPage] = useState(1); // Local currentPage state
-
-  const isFetchingRef = useRef(isFetching);
-  const hasMoreRef = useRef(hasMore);
-
-  useEffect(() => {
-    isFetchingRef.current = isFetching;
-  }, [isFetching]);
-
-  useEffect(() => {
-    hasMoreRef.current = hasMore;
-  }, [hasMore]);
 
   const fetchProducts = useCallback(async (pageToFetch) => {
-    if (isFetchingRef.current || fetchedPages.current.has(pageToFetch) || !hasMoreRef.current) {
-        console.log(`Skipping fetch: isFetching=${isFetchingRef.current}, fetchedPagesContains=${fetchedPages.current.has(pageToFetch)}, hasMore=${hasMoreRef.current}`);
+    if (isFetching || fetchedPages.current.has(pageToFetch) || !hasMore) {
+        console.log(`Skipping fetch: isFetching=${isFetching}, fetchedPagesContains=${fetchedPages.current.has(pageToFetch)}, hasMore=${hasMore}`);
         return;
     }
 
@@ -68,7 +55,7 @@ function BulkEditProducts() {
       setHasMore(false);
     }
     setIsFetching(false);
-  }, [dispatch, searchQuery, toast]); // isFetching and hasMore are accessed via refs
+  }, [dispatch, searchQuery, isFetching, hasMore, toast]);
 
   useEffect(() => {
     dispatch(resetProducts()); // Clear previous products on mount
@@ -76,43 +63,37 @@ function BulkEditProducts() {
     setProductsToUpdate({});
     setHasMore(true);
     fetchedPages.current.clear();
-    setLocalCurrentPage(1); // Reset local currentPage
     fetchProducts(1);
-  }, [searchQuery, dispatch, fetchProducts]);
 
-  const handleScroll = useCallback(
-    debounce(() => {
-      const scrollPosition = window.innerHeight + document.documentElement.scrollTop;
-      const threshold = document.documentElement.scrollHeight - 100;
-
-      if (document.documentElement.scrollTop > (window.innerWidth < 768 ? 30 : 50)) {
-        setShowArrow(true);
-      } else {
-        setShowArrow(false);
+    const fetchAllProductsForFilters = async () => {
+      const response = await dispatch(fetchProductsForBulkEdit({ limit: 10000, searchQuery }));
+      if (response.payload?.success) {
+        setAllProductsForFilters(response.payload.data);
       }
+    };
 
-      if (scrollPosition >= threshold && hasMoreRef.current && !isFetchingRef.current) {
-        setLocalCurrentPage((prev) => prev + 1); // Increment local currentPage
-      }
-    }, 300),
-    [] // Dependencies are now empty because hasMoreRef and isFetchingRef are used
-  );
+    fetchAllProductsForFilters();
+  }, [searchQuery, dispatch]);
 
   useEffect(() => {
-    // Fetch products when localCurrentPage changes, but only if it's not the initial load (page 1)
-    if (localCurrentPage > 1) {
-      fetchProducts(localCurrentPage);
-    }
-  }, [localCurrentPage, fetchProducts]);
+    dispatch(resetProducts()); // Clear previous products on mount
+    setEditableProducts([]);
+    setProductsToUpdate({});
+    setHasMore(true);
+    fetchedPages.current.clear();
+    fetchProducts(1);
 
-  useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
+    const fetchAllProductsForFilters = async () => {
+      const response = await dispatch(fetchProductsForBulkEdit({ limit: 10000, searchQuery }));
+      if (response.payload?.success) {
+        setAllProductsForFilters(response.payload.data);
+      }
+    };
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+    fetchAllProductsForFilters();
+  }, [searchQuery, dispatch]);
+
+
 
   const handleProductChange = (productId, field, value) => {
     setEditableProducts((prev) =>
@@ -156,7 +137,6 @@ function BulkEditProducts() {
       setEditableProducts([]);
       setHasMore(true);
       fetchedPages.current.clear();
-      fetchProducts(1);
     } else {
       toast({
         title: "Bulk update failed",
@@ -190,7 +170,7 @@ function BulkEditProducts() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="md:col-span-1">
-          <BulkProductFilters products={editableProducts} onFiltered={setFilteredProducts} />
+          <BulkProductFilters products={allProductsForFilters} onFiltered={setFilteredProducts} />
         </div>
         <div className="md:col-span-3">
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
@@ -209,14 +189,6 @@ function BulkEditProducts() {
         </div>
       </div>
 
-      {showArrow && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-5 right-5 p-3 rounded-full bg-orange-600 text-white shadow-lg hover:bg-orange-700 transition duration-300"
-        >
-          <ChevronUp className="w-6 h-6" />
-        </button>
-      )}
       {hasMore && isFetching && <div className="text-center py-4"><Loader /></div>}
 
       <Dialog open={openConfirmationModal} onOpenChange={setOpenConfirmationModal}>
