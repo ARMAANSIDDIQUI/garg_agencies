@@ -151,13 +151,13 @@ const createOrder = async (req, res) => {
             .join("")}
         </tbody>
       </table>
-      <p>Thank you for using our service @Shashwat Enterprises!</p>
+      <p>Thank you for using our service @Garg Agencies!</p>
     `;
 
     // Send to main admin
     await transporter.sendMail({
       from: "gozoomtechnologies@gmail.com",
-      to: "shashwatmbd@gmail.com", // main admin
+      to: "lakshitgargagencies@gmail.com", // main admin
       subject: `New Order Received - Shop Name: ${addressInfo.shopName}`,
       html: emailHTML,
     });

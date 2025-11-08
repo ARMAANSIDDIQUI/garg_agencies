@@ -16,7 +16,7 @@ const createAdmin = async () => {
     await mongoose.connect(MONGO_URI);
     console.log("MongoDB connected for seeding...");
 
-    const adminPhone = "9456222022";
+    const adminPhone = "8534933825";
 
     const existingAdmin = await User.findOne({ phoneNo: adminPhone });
     if (existingAdmin) {

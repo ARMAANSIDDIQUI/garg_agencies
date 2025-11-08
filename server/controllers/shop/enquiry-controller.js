@@ -25,7 +25,7 @@ const sendEnquiry = async (req, res) => {
 
     const mailOptions = {
       from: "gozoomtechnologies@gmail.com",
-      to: "shashwatmbd@gmail.com",
+      to: "lakshitgargagencies@gmail.com",
       subject: `New Enquiry for Product: ${product.title}`,
       html: `
         <h1>New Enquiry Details</h1>
@@ -33,7 +33,7 @@ const sendEnquiry = async (req, res) => {
         <p><strong>From:</strong> ${email}</p>
         <p><strong>Phone:</strong> ${phone}</p>
         <p><strong>Message:</strong> ${message}</p>
-        <p>Thank you for using our service @Shashwat Enterprises!</p>
+        <p>Thank you for using our service @Garg Agencies!</p>
       `,
     };
 
