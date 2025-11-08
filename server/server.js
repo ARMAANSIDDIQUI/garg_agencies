@@ -81,7 +81,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
-const cors = require("cors");
+// const cors = require("cors");
 const dotenv = require("dotenv");
 const path = require("path");
 
