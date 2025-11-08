@@ -10,26 +10,26 @@ const initialState = {
 
 // Async thunk to fetch all brands
 export const getAllBrands = createAsyncThunk("/brands/getAllBrands", async () => {
-  const response = await axios.get(`http://localhost:5000/api/admin/brand/get`);
+  const response = await axios.get(`/api/admin/brand/get`);
   return response.data;
 });
 
 // Async thunk to add a new brand
 export const addBrand = createAsyncThunk("/brands/addBrand", async (brandData) => {
-  const response = await axios.post(`http://localhost:5000/api/admin/brand/add`, brandData);
+  const response = await axios.post(`/api/admin/brand/add`, brandData);
   return response.data;
 });
 
 // Async thunk to edit an existing brand by ID
 export const editBrand = createAsyncThunk("/brands/editBrand", async ({ id, brandData }) => {
   console.log(brandData)
-  const response = await axios.put(`http://localhost:5000/api/admin/brand/${id}`, brandData);
+  const response = await axios.put(`/api/admin/brand/${id}`, brandData);
   return response.data;
 });
 
 // Async thunk to delete a brand by ID
 export const deleteBrandById = createAsyncThunk("/brands/deleteBrand", async (id) => {
-  const response = await axios.delete(`http://localhost:5000/api/admin/brand/${id}`);
+  const response = await axios.delete(`/api/admin/brand/${id}`);
   return response.data;
 });
 

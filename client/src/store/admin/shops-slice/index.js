@@ -12,7 +12,7 @@ const initialState = {
 export const fetchShops = createAsyncThunk(
     "shop/fetchShops",
     async () => {
-        const response = await axios.get("http://localhost:5000/api/admin/users/get", {
+        const response = await axios.get("/api/admin/users/get", {
             withCredentials: true,
         });
         return response.data; // Assuming the API returns an array of shops (users)
@@ -24,7 +24,7 @@ export const fetchShops = createAsyncThunk(
 export const updateRole = createAsyncThunk(
     "shop/updateRole", // Updated to match the action name in Shops.jsx
     async ({ shopId, role }) => {
-        const response = await axios.put(`http://localhost:5000/api/admin/users/${shopId}`, { role }, {
+        const response = await axios.put(`/api/admin/users/${shopId}`, { role }, {
             withCredentials: true,
         });
         return response.data; // Return the updated shop/user object
@@ -35,7 +35,7 @@ export const updateRole = createAsyncThunk(
 export const deleteShop = createAsyncThunk(
     "shop/deleteShop",
     async (shopId) => {
-        const response = await axios.delete(`http://localhost:5000/api/admin/users/${shopId}`, {
+        const response = await axios.delete(`/api/admin/users/${shopId}`, {
             withCredentials: true,
         });
         return { _id: shopId }; // Return the deleted shop's ID (adjusted)

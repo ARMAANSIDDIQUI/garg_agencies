@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import store from "./store/store.js";
 import { Toaster } from "./components/ui/toaster.jsx";
+import './config/axios.js'
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>

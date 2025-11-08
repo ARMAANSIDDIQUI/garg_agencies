@@ -13,7 +13,7 @@ export const getAllCategories = createAsyncThunk(
   "categories/getAllCategories",
   async () => {
     const response = await axios.get(
-      "http://localhost:5000/api/admin/category/get"
+      "/api/admin/category/get"
     );
     return response.data;
   }
@@ -24,7 +24,7 @@ export const addCategory = createAsyncThunk(
   "categories/addCategory",
   async (categoryData) => {
     const response = await axios.post(
-      "http://localhost:5000/api/admin/category/add",
+      "/api/admin/category/add",
       categoryData
     );
     return response.data;
@@ -36,7 +36,7 @@ export const editCategory = createAsyncThunk(
   "categories/editCategory",
   async ({ id, categoryData }) => {
     const response = await axios.put(
-      `http://localhost:5000/api/admin/category/${id}`,
+      `/api/admin/category/${id}`,
       categoryData
     );
     return response.data;
@@ -48,7 +48,7 @@ export const deleteCategoryById = createAsyncThunk(
   "categories/deleteCategory",
   async (id) => {
     const response = await axios.delete(
-      `http://localhost:5000/api/admin/category/${id}`
+      `/api/admin/category/${id}`
     );
     return response.data;
   }

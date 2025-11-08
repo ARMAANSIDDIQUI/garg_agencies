@@ -15,7 +15,7 @@ const initialState = {
 export const fetchUsers = createAsyncThunk(
     "salesman/fetchUsers",
     async () => {
-        const response = await axios.get("http://localhost:5000/api/salesman/users", {
+        const response = await axios.get("/api/salesman/users", {
             withCredentials: true,
         });
         return response.data;
@@ -25,7 +25,7 @@ export const fetchUsers = createAsyncThunk(
 export const addUser = createAsyncThunk(
     "salesman/addUser",
     async (userData) => {
-        const response = await axios.post("http://localhost:5000/api/salesman/users", userData, {
+        const response = await axios.post("/api/salesman/users", userData, {
             withCredentials: true,
         });
         return response.data;
@@ -35,7 +35,7 @@ export const addUser = createAsyncThunk(
 // export const impersonateUser = createAsyncThunk(
 //     "salesman/impersonateUser",
 //     async (userId) => {
-//         const response = await axios.post(`http://localhost:5000/api/salesman/impersonate/${userId}`, {}, {
+//         const response = await axios.post(`/api/salesman/impersonate/${userId}`, {}, {
 //             withCredentials: true,
 //         });
 //         return response.data;
@@ -46,7 +46,7 @@ export const addUser = createAsyncThunk(
 export const fetchSalesmen = createAsyncThunk(
     "salesman/fetchSalesmen",
     async () => {
-        const response = await axios.get("http://localhost:5000/api/salesman", {
+        const response = await axios.get("/api/salesman", {
             withCredentials: true,
         });
         return response.data.salesmen;;
@@ -57,7 +57,7 @@ export const fetchSalesmen = createAsyncThunk(
 export const fetchSalesmenOrders = createAsyncThunk(
     "salesman/fetchSalesmenOrders",
     async (salesmanId) => {
-        const response = await axios.get(`http://localhost:5000/api/salesman/orders/${salesmanId}`, {
+        const response = await axios.get(`/api/salesman/orders/${salesmanId}`, {
             withCredentials: true,
         });
         return { salesmanId, orders: response.data.orders };

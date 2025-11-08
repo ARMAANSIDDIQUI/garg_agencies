@@ -38,7 +38,7 @@ const Shop = () => {
       
         try {
           // Send the API request to impersonate the user
-          const response = await fetch(`http://localhost:5000/api/salesman/impersonate/${userId}/${salesmanId}`, {
+          const response = await fetch(`/api/salesman/impersonate/${userId}/${salesmanId}`, {
             method: 'POST',
             credentials: 'include', // This allows sending and receiving cookies in the request
           });

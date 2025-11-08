@@ -118,7 +118,7 @@ function UnauthShoppingListing() {
   async function handleSendEnquiry({ productId, email, message, phone }) {
     setIsEnquiryLoading(true);
     try {
-      const response = await fetch("http://localhost:5000/api/shop/enquire", {
+      const response = await fetch("/api/shop/enquire", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

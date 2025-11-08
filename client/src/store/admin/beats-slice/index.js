@@ -10,13 +10,13 @@ const initialState = {
 
 // Async thunk to fetch all beats
 export const getAllBeats = createAsyncThunk("/beats/getAllBeats", async () => {
-  const response = await axios.get(`http://localhost:5000/api/admin/beats/get`);
+  const response = await axios.get(`/api/admin/beats/get`);
   return response.data;
 });
 
 // Async thunk to add a new beat
 export const addNewBeat = createAsyncThunk("/beats/addBeat", async (beatName) => {
-  const response = await axios.post(`http://localhost:5000/api/admin/beats/add`, {
+  const response = await axios.post(`/api/admin/beats/add`, {
     beatName,
   });
   return response.data;
@@ -24,7 +24,7 @@ export const addNewBeat = createAsyncThunk("/beats/addBeat", async (beatName) =>
 
 // Async thunk to edit an existing beat by ID
 export const editBeatById = createAsyncThunk("/beats/editBeat", async ({ id, beatName }) => {
-  const response = await axios.put(`http://localhost:5000/api/admin/beats/${id}`, {
+  const response = await axios.put(`/api/admin/beats/${id}`, {
     beatName,
   });
   return response.data;
@@ -32,7 +32,7 @@ export const editBeatById = createAsyncThunk("/beats/editBeat", async ({ id, bea
 
 // Async thunk to delete a beat by ID
 export const deleteBeat = createAsyncThunk("/beats/deleteBeat", async (id) => {
-  const response = await axios.delete(`http://localhost:5000/api/admin/beats/${id}`);
+  const response = await axios.delete(`/api/admin/beats/${id}`);
   return response.data;
 });
 

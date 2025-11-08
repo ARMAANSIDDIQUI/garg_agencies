@@ -16,7 +16,7 @@ function ForgotPassword() {
 
         try {
             const response = await axios.post(
-                "http://localhost:5000/api/auth/request-otp",
+                "/api/auth/request-otp",
                 { phoneNo }
             );
             if (response.data.success) {
@@ -34,7 +34,7 @@ function ForgotPassword() {
     const verifyOtp = async () => {
         try {
             const response = await axios.post(
-                "http://localhost:5000/api/auth/verify-otp",
+                "/api/auth/verify-otp",
                 { phoneNo, otp, newPassword }
             );
             if (response.data.success) {
@@ -52,7 +52,7 @@ function ForgotPassword() {
     const resendOtp = async () => {
         try {
             const response = await axios.post(
-                "http://localhost:5000/api/auth/request-otp",
+                "/api/auth/request-otp",
                 { phoneNo }
             );
             if (response.data.success) {

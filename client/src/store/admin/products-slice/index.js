@@ -14,7 +14,7 @@ export const addNewProduct = createAsyncThunk(
   "/products/addnewproduct",
   async (formData) => {
     const result = await axios.post(
-      "http://localhost:5000/api/admin/products/add",
+      "/api/admin/products/add",
       formData,
       {
         headers: {
@@ -31,7 +31,7 @@ export const fetchAllProducts = createAsyncThunk(
   "/products/fetchAllProducts",
   async ({ page = 1, limit = 12, searchQuery ='' }) => {
     const result = await axios.get(
-      `http://localhost:5000/api/admin/products/get?page=${page}&limit=${limit}&searchQuery=${searchQuery}`
+      `/api/admin/products/get?page=${page}&limit=${limit}&searchQuery=${searchQuery}`
     );
 
     return result?.data;
@@ -41,7 +41,7 @@ export const fetchAllProductSearch = createAsyncThunk(
   "/products/fetchAllProductSearch",
   async ({ page = 1, limit = 12, searchQuery ='' }) => {
     const result = await axios.get(
-      `http://localhost:5000/api/admin/products/get?page=${page}&limit=${limit}&searchQuery=${searchQuery}`
+      `/api/admin/products/get?page=${page}&limit=${limit}&searchQuery=${searchQuery}`
     );
 
     return result?.data;
@@ -52,7 +52,7 @@ export const fetchOutOfStockProducts = createAsyncThunk(
   "/products/fetchOutOfStockProducts",
   async () => {
     const result = await axios.get(
-      "http://localhost:5000/api/admin/products/outOfStock"
+      "/api/admin/products/outOfStock"
     );
 
     return result?.data;
@@ -63,7 +63,7 @@ export const editProduct = createAsyncThunk(
   "/products/editProduct",
   async ({ id, formData }) => {
     const result = await axios.put(
-      `http://localhost:5000/api/admin/products/edit/${id}`,
+      `/api/admin/products/edit/${id}`,
       formData,
       {
         headers: {
@@ -80,7 +80,7 @@ export const deleteProduct = createAsyncThunk(
   "/products/deleteProduct",
   async (id) => {
     const result = await axios.delete(
-      `http://localhost:5000/api/admin/products/delete/${id}`
+      `/api/admin/products/delete/${id}`
     );
 
     return result?.data;
@@ -92,7 +92,7 @@ export const fetchProductsForBulkEdit = createAsyncThunk(
   "/products/fetchProductsForBulkEdit",
   async ({ page = 1, limit = 12, searchQuery = '' }) => {
     const result = await axios.get(
-      `http://localhost:5000/api/admin/products/bulk-edit?page=${page}&limit=${limit}&searchQuery=${searchQuery}`,
+      `/api/admin/products/bulk-edit?page=${page}&limit=${limit}&searchQuery=${searchQuery}`,
       {
         withCredentials: true, // Ensure cookies are sent
       }
@@ -106,7 +106,7 @@ export const bulkUpdateProducts = createAsyncThunk(
   "/products/bulkUpdateProducts",
   async ({ updates }) => {
     const result = await axios.put(
-      "http://localhost:5000/api/admin/products/bulk-update",
+      "/api/admin/products/bulk-update",
       { updates },
       {
         headers: {
