@@ -5,8 +5,8 @@ const Product = require("../../models/Product");
 const transporter = nodemailer.createTransport({
   service: "gmail", 
   auth: {
-    user: "gozoomtechnologies@gmail.com", 
-    pass: "qwuyqyxwiystcbhf", 
+    user: process.env.EMAIL_USER, 
+    pass: process.env.EMAIL_PASS, 
   },
 });
 
@@ -24,8 +24,8 @@ const sendEnquiry = async (req, res) => {
     }
 
     const mailOptions = {
-      from: "gozoomtechnologies@gmail.com",
-      to: "lakshitgargagencies@gmail.com",
+      from: process.env.EMAIL_USER,
+      to: "gargagencies007@gmail.com",
       subject: `New Enquiry for Product: ${product.title}`,
       html: `
         <h1>New Enquiry Details</h1>

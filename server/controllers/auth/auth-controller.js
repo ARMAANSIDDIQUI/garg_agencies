@@ -142,7 +142,6 @@ const requestOtp = async (req, res) => {
       await newOtp.save();
     }
 
-    // Define the message with the custom business name (Shashwat Enterprises) and phone number format (+51)
     const message = `Your OTP for Garg Agencies is: ${otp}`;
 
     // Send the OTP via Fast2SMS API

@@ -9,8 +9,8 @@ const Address = require("../../models/Address");
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "gozoomtechnologies@gmail.com",
-    pass: "qwuyqyxwiystcbhf",
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
 });
 
@@ -156,8 +156,8 @@ const createOrder = async (req, res) => {
 
     // Send to main admin
     await transporter.sendMail({
-      from: "gozoomtechnologies@gmail.com",
-      to: "lakshitgargagencies@gmail.com", // main admin
+      from: process.env.EMAIL_USER,
+      to: "gargagencies007@gmail.com",
       subject: `New Order Received - Shop Name: ${addressInfo.shopName}`,
       html: emailHTML,
     });
@@ -179,7 +179,7 @@ const createOrder = async (req, res) => {
 
       if (shopEmail) {
         await transporter.sendMail({
-          from: "gozoomtechnologies@gmail.com",
+          from: process.env.EMAIL_USER,
           to: shopEmail,
           subject: `Copy of Order Received - ${addressInfo.shopName}`,
           html: emailHTML,
