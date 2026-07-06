@@ -60,7 +60,17 @@ function AdminBrands() {
     setSubcategories(updatedSubcategories);
   };
 
+  const isFormValid = () => {
+    return (
+      newBrandName.trim() !== "" &&
+      !!uploadedImageUrl &&
+      subcategories.every((sub) => sub.trim() !== "") &&
+      !imageLoadingState
+    );
+  };
+
   const handleSubmit = () => {
+    if (!isFormValid()) return;
     const brandData = {
       brandName: newBrandName,
       imageUrl: uploadedImageUrl,
@@ -176,6 +186,7 @@ function AdminBrands() {
 
             <Button
               onClick={handleSubmit} 
+              disabled={!isFormValid()}
               className="mt-4 bg-blue-500 text-white"
             >
               {currentEditedId ? "Update Brand" : "Submit"} 

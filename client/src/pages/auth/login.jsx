@@ -89,6 +89,7 @@ function AuthLogin() {
           onSubmit={onSubmit}
           phoneNo={phoneNo}
           password={password}
+          isBtnDisabled={!formData.phoneNo.trim() || !formData.password.trim()}
         />
       </div>
     </div>

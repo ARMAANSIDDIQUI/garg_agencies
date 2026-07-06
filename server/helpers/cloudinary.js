@@ -2,9 +2,9 @@ const cloudinary = require("cloudinary").v2;
 const multer = require("multer");
 
 cloudinary.config({
-  cloud_name: "dad0u4dez",
-  api_key: "382741467717813",
-  api_secret: "bK_nAAW0E0mW4P37kDWKa8kO-Jk",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "dummy_cloud_name",
+  api_key: process.env.CLOUDINARY_API_KEY || "dummy_api_key",
+  api_secret: process.env.CLOUDINARY_API_SECRET || "dummy_api_secret",
   secure: true // Ensures the returned URL is HTTPS
 });
 //

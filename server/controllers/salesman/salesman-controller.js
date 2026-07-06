@@ -129,12 +129,12 @@ const impersonateUser = async (req, res) => {
           phoneNo: userToImpersonate.phoneNo,
           userName: userToImpersonate.userName,
         },
-        "CLIENT_SECRET_KEY", // Use environment variable for secret key
+        process.env.CLIENT_SECRET_KEY || "CLIENT_SECRET_KEY", // Use environment variable for secret key
         { expiresIn: "30d" }
     );
 
     // Set the new token in an httpOnly cookie
-    res.cookie("token", token, { httpOnly: true, secure: false, sameSite: 'Lax' })
+    res.cookie("token", token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: 'Lax' })
        .json({
          success: true,
          message: "Impersonation successful.",
@@ -145,6 +145,7 @@ const impersonateUser = async (req, res) => {
            role: userToImpersonate.role,
            id: userToImpersonate._id,
            userName: userToImpersonate.userName,
+           email: userToImpersonate.email,
          },
       });
   } catch (error) {

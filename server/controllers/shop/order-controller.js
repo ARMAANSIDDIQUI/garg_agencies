@@ -154,19 +154,19 @@ const createOrder = async (req, res) => {
       <p>Thank you for using our service @Garg Agencies!</p>
     `;
 
-    // Send to main admin
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+    // Gather recipient emails
+    const emailsToSend = [];
+
+    // 1. Main Admin (definitive)
+    emailsToSend.push({
       to: "gargagencies007@gmail.com",
-      subject: `New Order Received - Shop Name: ${addressInfo.shopName}`,
-      html: emailHTML,
+      subject: `New Order Received - Shop Name: ${addressInfo.shopName}`
     });
 
-    // Try sending copy to shop
+    // Resolve shop email
+    let shopEmail = "";
     try {
       const shopOwner = await User.findById(userId);
-      let shopEmail = "";
-
       if (shopOwner) {
         const addresses = await Address.find({ userId: shopOwner._id });
         const validAddrEmail = addresses.find(
@@ -176,19 +176,44 @@ const createOrder = async (req, res) => {
         else if (shopOwner.email && /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(shopOwner.email))
           shopEmail = shopOwner.email;
       }
-
-      if (shopEmail) {
-        await transporter.sendMail({
-          from: process.env.EMAIL_USER,
-          to: shopEmail,
-          subject: `Copy of Order Received - ${addressInfo.shopName}`,
-          html: emailHTML,
-        });
-        console.log(`Order copy sent to shop email: ${shopEmail}`);
-      }
     } catch (err) {
-      console.error("Error sending order copy to shop:", err);
+      console.error("Error resolving shop email:", err);
     }
+
+    // 2. Customer Shop (definitive if email exists)
+    if (shopEmail) {
+      emailsToSend.push({
+        to: shopEmail,
+        subject: `Copy of Order Received - ${addressInfo.shopName}`
+      });
+    } else {
+      console.log("No valid email found for shop owner, skipping shop copy email.");
+    }
+
+    // 3. Salesperson (if salesmanId exists, and they have an email)
+    if (salesmanDetails && salesmanDetails.email && /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(salesmanDetails.email)) {
+      emailsToSend.push({
+        to: salesmanDetails.email,
+        subject: `Copy of Order Placed by you - ${addressInfo.shopName}`
+      });
+    }
+
+    // Send emails concurrently (non-blocking)
+    Promise.all(
+      emailsToSend.map(async (mailConfig) => {
+        try {
+          await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: mailConfig.to,
+            subject: mailConfig.subject,
+            html: emailHTML,
+          });
+          console.log(`Email successfully sent to: ${mailConfig.to}`);
+        } catch (mailError) {
+          console.error(`Failed to send email to ${mailConfig.to}:`, mailError);
+        }
+      })
+    ).catch(err => console.error("Unhandled promise error in sending emails:", err));
 
     res.status(201).json({
       success: true,

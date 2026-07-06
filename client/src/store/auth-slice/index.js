@@ -74,6 +74,20 @@ export const checkAuth = createAsyncThunk(
   }
 );
 
+export const updateUserEmail = createAsyncThunk(
+  "/auth/updateUserEmail",
+  async ({ userId, email }) => {
+    const response = await axios.post(
+      "/api/auth/update-email",
+      { userId, email },
+      {
+        withCredentials: true,
+      }
+    );
+    return response.data;
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -127,6 +141,11 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
+      })
+      .addCase(updateUserEmail.fulfilled, (state, action) => {
+        if (action.payload.success) {
+          state.user = action.payload.user;
+        }
       });
   },
 });

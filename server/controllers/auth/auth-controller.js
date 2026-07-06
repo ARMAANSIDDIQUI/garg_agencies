@@ -90,11 +90,15 @@ const loginUser = async (req, res) => {
         phoneNo: checkUser.phoneNo,
         userName: checkUser.userName,
       },
-      "CLIENT_SECRET_KEY",
+      process.env.CLIENT_SECRET_KEY || "CLIENT_SECRET_KEY",
       { expiresIn: "30d" }
     );
 
-    res.cookie("token", token, { httpOnly: false, secure: false }).json({ 
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax"
+    }).json({ 
       success: true,
       message: "Logged in successfully",
       user: {
@@ -103,6 +107,7 @@ const loginUser = async (req, res) => {
         role: checkUser.role,
         id: checkUser._id,
         userName: checkUser.userName,
+        email: checkUser.email,
       },
     });
   } catch (e) {
@@ -220,7 +225,7 @@ const authMiddleware = async (req, res, next) => {
     });
 
   try {
-    const decoded = jwt.verify(token, "CLIENT_SECRET_KEY");
+    const decoded = jwt.verify(token, process.env.CLIENT_SECRET_KEY || "CLIENT_SECRET_KEY");
     req.user = decoded;
     next();
   } catch (error) {
@@ -288,5 +293,57 @@ const changePassword = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, logoutUser, authMiddleware,requestOtp,
-  verifyOtp, changePassword, };
+const updateEmail = async (req, res) => {
+  const { userId, email } = req.body;
+
+  try {
+    if (!userId || !email) {
+      return res.json({
+        success: false,
+        message: "User ID and Email are required",
+      });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { email },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Email updated successfully",
+      user: {
+        id: updatedUser._id,
+        userName: updatedUser.userName,
+        phoneNo: updatedUser.phoneNo,
+        role: updatedUser.role,
+        email: updatedUser.email,
+      }
+    });
+  } catch (error) {
+    console.error("Error in update email:", error);
+    res.status(500).json({
+      success: false,
+      message: "An error occurred while updating email",
+    });
+  }
+};
+
+module.exports = {
+  registerUser,
+  loginUser,
+  logoutUser,
+  authMiddleware,
+  requestOtp,
+  verifyOtp,
+  changePassword,
+  updateEmail,
+};

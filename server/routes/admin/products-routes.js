@@ -17,13 +17,13 @@ const { upload } = require("../../helpers/cloudinary");
 
 const router = express.Router();
 
-router.post("/upload-image", upload.single("my_file"), handleImageUpload);
-router.post("/add", addProduct);
-router.put("/edit/:id", editProduct);
-router.delete("/delete/:id", deleteProduct);
-router.get("/get", fetchAllProducts);
-router.get("/outOfStock", fetchAllOutOfStockProducts);
-router.get("/search/:searchQuery", searchProduct);
+router.post("/upload-image", verifyToken, authorizeRoles("admin"), upload.single("my_file"), handleImageUpload);
+router.post("/add", verifyToken, authorizeRoles("admin"), addProduct);
+router.put("/edit/:id", verifyToken, authorizeRoles("admin"), editProduct);
+router.delete("/delete/:id", verifyToken, authorizeRoles("admin"), deleteProduct);
+router.get("/get", verifyToken, authorizeRoles("admin"), fetchAllProducts);
+router.get("/outOfStock", verifyToken, authorizeRoles("admin"), fetchAllOutOfStockProducts);
+router.get("/search/:searchQuery", verifyToken, authorizeRoles("admin"), searchProduct);
 
 // New routes for bulk product editing
 router.get("/bulk-edit", verifyToken, authorizeRoles("admin"), fetchProductsForBulkEdit);

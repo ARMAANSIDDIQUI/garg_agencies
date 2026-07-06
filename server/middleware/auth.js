@@ -9,7 +9,7 @@ const verifyToken = async (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, "CLIENT_SECRET_KEY"); // Use the same secret key as in auth-controller.js
+    const decoded = jwt.verify(token, process.env.CLIENT_SECRET_KEY || "CLIENT_SECRET_KEY"); // Use the same secret key as in auth-controller.js
     req.user = await User.findById(decoded.id).select('-password');
 
     if (!req.user) {

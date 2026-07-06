@@ -179,10 +179,14 @@ function AdminProducts() {
   }
 
   function isFormValid() {
-    return Object.keys(formData)
-      .filter((currentKey) => currentKey !== "averageReview")
-      .map((key) => formData[key] !== "")
-      .every((item) => item);
+    const isImageUploaded = currentEditedId !== null ? (uploadedImageUrl || formData.image) : uploadedImageUrl;
+    const requiredFields = ["title", "description", "category", "brand", "price"];
+    const textFieldsValid = requiredFields.every(
+      (key) => formData[key] !== undefined && formData[key] !== null && String(formData[key]).trim() !== ""
+    );
+    const subcategoryValid = formData.subcategory === undefined || String(formData.subcategory).trim() !== "";
+
+    return !!isImageUploaded && textFieldsValid && subcategoryValid && !imageLoadingState;
   }
   
   function markInStock(productId) {

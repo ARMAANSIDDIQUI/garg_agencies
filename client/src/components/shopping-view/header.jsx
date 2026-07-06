@@ -72,6 +72,8 @@ function MenuItems({ closeSheet }) {
   );
 }
 
+import PWAInstallButton from "../common/PWAInstallButton";
+
 function HeaderRightContent() {
   const { user } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.shopCart);
@@ -97,6 +99,7 @@ function HeaderRightContent() {
 
   return (
     <div className="flex lg:items-center lg:flex-row gap-4">
+      <PWAInstallButton />
       <Sheet open={openCartSheet} onOpenChange={() => setOpenCartSheet(false)}>
         <Button
           onClick={() => setOpenCartSheet(true)}

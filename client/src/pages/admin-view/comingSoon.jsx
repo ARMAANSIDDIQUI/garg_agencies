@@ -92,10 +92,13 @@ function AdminComingSoon() {
 
   // Function to validate the form
   function isFormValid() {
-    return Object.keys(formData)
-      .filter((currentKey) => currentKey !== "averageReview")
-      .map((key) => formData[key] !== "")
-      .every((item) => item);
+    const isImageUploaded = currentEditedId !== null ? (uploadedImageUrl || formData.image) : uploadedImageUrl;
+    const requiredFields = ["title", "description", "category", "brand", "price"];
+    const textFieldsValid = requiredFields.every(
+      (key) => formData[key] !== undefined && formData[key] !== null && String(formData[key]).trim() !== ""
+    );
+
+    return !!isImageUploaded && textFieldsValid && !imageLoadingState;
   }
 
   // Function to mark a product as in stock

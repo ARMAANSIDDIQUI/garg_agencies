@@ -42,7 +42,12 @@ function AdminCategory() {
     setSheetOpen(true);
   };
 
+  const isFormValid = () => {
+    return newCategoryName.trim() !== "" && !!uploadedImageUrl && !imageLoadingState;
+  };
+
   const handleSubmit = () => {
+    if (!isFormValid()) return;
     const categoryData = {
       categoryName: newCategoryName,
       imageUrl: uploadedImageUrl, // Assuming you handle image upload separately
@@ -129,6 +134,7 @@ function AdminCategory() {
             />
             <Button
               onClick={handleSubmit} 
+              disabled={!isFormValid()}
               className="mt-4 bg-blue-500 text-white"
             >
               {currentEditedId ? "Update Category" : "Submit"} 

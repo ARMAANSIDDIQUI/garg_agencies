@@ -112,6 +112,7 @@ const Beats = () => {
             />
             <Button
               onClick={editBeat ? handleUpdateBeat : handleAddBeat}
+              disabled={!newBeatName.trim()}
               className="mt-4 bg-blue-500 text-white"
             >
               {editBeat ? "Update Beat" : "Submit"}

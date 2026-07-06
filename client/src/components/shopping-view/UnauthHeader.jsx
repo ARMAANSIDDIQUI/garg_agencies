@@ -39,6 +39,8 @@ function MenuItems({ closeSheet }) {
   );
 }
 
+import PWAInstallButton from "../common/PWAInstallButton";
+
 function UnauthHeader() {
   const navigate = useNavigate();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -52,7 +54,8 @@ function UnauthHeader() {
         </Link>
         
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <div className="lg:hidden">
+          <div className="lg:hidden flex items-center gap-2">
+            <PWAInstallButton />
             <Button onClick={() => navigate("/auth/login")}>Login</Button>
           </div>
           <SheetTrigger asChild>
@@ -67,9 +70,10 @@ function UnauthHeader() {
             </Button>
           </SheetTrigger>
 
-          <SheetContent side="left" className="w-full max-w-xs">
+          <SheetContent side="left" className="w-full max-w-xs flex flex-col gap-4">
             <MenuItems closeSheet={() => setIsSheetOpen(false)} />
-            <Button onClick={() => navigate("/auth/login")}>Login</Button>
+            <PWAInstallButton className="w-full" />
+            <Button onClick={() => navigate("/auth/login")} className="w-full">Login</Button>
           </SheetContent>
         </Sheet>
 
@@ -77,7 +81,8 @@ function UnauthHeader() {
           <MenuItems />
         </div>
 
-        <div className="hidden lg:block">
+        <div className="hidden lg:flex items-center gap-4">
+          <PWAInstallButton />
           <Button onClick={() => navigate("/auth/login")}>Login</Button>
         </div>
       </div>

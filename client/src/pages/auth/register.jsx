@@ -85,6 +85,16 @@ function AuthRegister() {
     return control;
   });
 
+  const isFormValid = () => {
+    return (
+      formData.userName.trim() !== "" &&
+      formData.userAddress.trim() !== "" &&
+      formData.phoneNo.trim() !== "" &&
+      formData.beatName.trim() !== "" &&
+      formData.password.trim() !== ""
+    );
+  };
+
   return (
     <div className="mx-auto w-full max-w-md space-y-6">
       <div className="text-center">
@@ -107,6 +117,7 @@ function AuthRegister() {
         formData={formData}
         setFormData={setFormData}
         onSubmit={onSubmit}
+        isBtnDisabled={!isFormValid()}
       />
     </div>
   );

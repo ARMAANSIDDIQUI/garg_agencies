@@ -40,6 +40,8 @@ import Shops from "./pages/admin-view/shops";
 import ChangePassword from "./pages/shopping-view/changePassword";
 import { ChevronUp } from "lucide-react";
 
+import EmailPromptPopup from "./components/common/EmailPromptPopup";
+
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector(
     (state) => state.auth
@@ -76,6 +78,7 @@ function App() {
   return (
     <div className="flex flex-col overflow-hidden bg-white">
       <ScrollToTop />
+      <EmailPromptPopup />
       <Routes>
         <Route
           path="/"
