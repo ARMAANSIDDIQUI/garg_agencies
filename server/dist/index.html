@@ -2,12 +2,25 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/jpeg" href="/assets/garg_agencies-DBGgOadz.jpg" />
+    <link rel="icon" type="image/jpeg" href="/garg_agencies.jpg" />
+    <link rel="apple-touch-icon" href="/garg_agencies.jpg" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#ea580c" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script>
+      window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent Chrome 67 and earlier from automatically showing the prompt
+        e.preventDefault();
+        // Stash the event so it can be triggered later.
+        window.deferredPrompt = e;
+        // Dispatch custom event to notify React components
+        window.dispatchEvent(new CustomEvent('pwa-installable'));
+      });
+    </script>
     <title>Garg Agencies</title>
-    <script type="module" crossorigin src="/assets/index-Bo_W8IaN.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-BUP6HGGQ.css">
+    <script type="module" crossorigin src="/assets/index-DgpNoayg.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CZ8MYbtR.css">
   </head>
   <body>
     <div id="root"></div>
